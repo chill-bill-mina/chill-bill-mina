@@ -31,7 +31,10 @@ export class ProductContract extends SmartContract {
   init() {
     super.init();
     this.isInitialized.set(Bool(false));
-
+    this.originalSeller.set(PublicKey.empty());
+    this.currentOwner.set(PublicKey.empty());
+    this.saleHistoryRoot.set(Field(0));
+    this.productInfoRoot.set(Field(0));
 
     //  initialize metodunun sadece deployer tarafından çağrılması
     this.account.permissions.set({
@@ -50,7 +53,7 @@ export class ProductContract extends SmartContract {
     const initialized = this.isInitialized.get();
     this.isInitialized.requireEquals(initialized);
 
-    initialized.assertEquals(Bool(true));
+    initialized.assertEquals(Bool(false));
 
     // Gönderenin public key'ini al ve imzayı doğrula
     const senderPublicKey = this.sender.getAndRequireSignatureV2();
