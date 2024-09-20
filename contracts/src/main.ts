@@ -13,7 +13,7 @@ import { ProductContract, ProductInfoWitness, SaleHistoryWitness } from './Produ
 
 async function main() {
 
-  const useProof = false;
+  const useProof = true;
 
   const Local = await Mina.LocalBlockchain({ proofsEnabled: useProof });
   Mina.setActiveInstance(Local);
@@ -21,8 +21,8 @@ async function main() {
   const deployerAccount = Local.testAccounts[0];
   const deployerKey = deployerAccount.key;
 
-  const originalSellerAccount = Local.testAccounts[1];
-  const originalSellerKey = originalSellerAccount.key;
+  const originalSellerAccount = deployerAccount
+  const originalSellerKey = deployerKey
 
   const buyerAccount = Local.testAccounts[2];
   const buyerKey = buyerAccount.key;
@@ -31,7 +31,7 @@ async function main() {
   const zkAppAddress = zkAppPrivateKey.toPublicKey();
 
   const zkAppInstance = new ProductContract(zkAppAddress);
-
+  await ProductContract.compile();
   console.log('Deploying the ProductContract...');
   const deployTxn = await Mina.transaction(deployerAccount, async () => {
     AccountUpdate.fundNewAccount(deployerAccount);
@@ -47,30 +47,6 @@ async function main() {
   await deployTxn.sign([deployerKey, zkAppPrivateKey]).send();
 
   console.log('ProductContract deployed at address:', zkAppAddress.toBase58());
-
-
-  console.log('Initializing the ProductContract with init()...');
-  const initTxn = await Mina.transaction(deployerAccount, async () => {
-    await zkAppInstance.init();
-  });
-  console.log("CREATED TXN")
-  if (useProof) {
-    await initTxn.prove();
-  }
-  console.log("PROVED")
-  await initTxn.sign([deployerKey, zkAppPrivateKey]).send();
-  console.log("SİGNED!!")
-  console.log('Contract initialized with init().');
-
-
-
-  // Kontratın durumunu kontrol etme
-  const isInitializedBefore = zkAppInstance.isInitialized.get();
-  console.log('Contract is initialized before calling initialize:', isInitializedBefore.toBoolean());
-
-
-
-
 
 
 
@@ -90,6 +66,34 @@ async function main() {
 
   // Ürün bilgileri Merkle root'unu hesaplama
   const productInfoRoot = productInfoTree.getRoot();
+
+  console.log('Initializing the ProductContract with init()...');
+  const initTxn = await Mina.transaction(deployerAccount, async () => {
+    await zkAppInstance.initialize(deployerAccount, productInfoRoot);
+  });
+  console.log("CREATED TXN")
+  if (useProof) {
+    await initTxn.prove();
+  }
+  console.log("PROVED")
+  await initTxn.sign([deployerKey, zkAppPrivateKey]).send();
+  console.log("SİGNED!!")
+  console.log('Contract initialized with init().');
+
+  const originalOwner = zkAppInstance.currentOwner.get();
+  console.log('Originial owner after initialize :', originalOwner.toBase58());
+
+
+  // Kontratın durumunu kontrol etme
+  const isInitializedBefore = zkAppInstance.isInitialized.get();
+  console.log('Contract is initialized before calling initialize:', isInitializedBefore.toBoolean());
+
+
+
+
+
+
+
 
   // Ürünü yeni bir alıcıya satma işlemi
   console.log('Selling the product to a new owner...');
@@ -122,6 +126,8 @@ async function main() {
   // SaleHistoryWitness nesnesini oluşturma
   const saleHistoryWitness = new SaleHistoryWitness(merkleProof);
 
+  const originalOwnerv2 = zkAppInstance.currentOwner.get();
+  console.log('Originial owner before selling :', originalOwnerv2.toBase58());
   // Sell işlemi
   const sellTxn = await Mina.transaction(originalSellerAccount, async () => {
     await zkAppInstance.sell(
@@ -145,32 +151,32 @@ async function main() {
   const updatedOwner = zkAppInstance.currentOwner.get();
   console.log('Updated owner:', updatedOwner.toBase58());
 
-  // Ürün bilgisini doğrulama (örnek olarak)
-  console.log('Verifying product information...');
+  // // Ürün bilgisini doğrulama (örnek olarak)
+  // console.log('Verifying product information...');
 
-  // Doğrulamak istediğiniz yaprak değeri (örneğin, ürün ID'si)
-  const leafValueToVerify = productInfoLeaves[0]; // Field(12345)
+  // // Doğrulamak istediğiniz yaprak değeri (örneğin, ürün ID'si)
+  // const leafValueToVerify = productInfoLeaves[0]; // Field(12345)
 
-  // İlgili yaprak için Merkle proof oluşturma
-  const productLeafIndex = UInt64.from(0n); // İlk yaprak
-  const productMerkleProof = productInfoTree.getWitness(productLeafIndex.toBigInt());
+  // // İlgili yaprak için Merkle proof oluşturma
+  // const productLeafIndex = UInt64.from(0n); // İlk yaprak
+  // const productMerkleProof = productInfoTree.getWitness(productLeafIndex.toBigInt());
 
-  // ProductInfoWitness nesnesini oluşturma
-  const productInfoWitness = new ProductInfoWitness(productMerkleProof);
+  // // ProductInfoWitness nesnesini oluşturma
+  // const productInfoWitness = new ProductInfoWitness(productMerkleProof);
 
-  // verifyProductInfo işlemi
-  const verifyTxn = await Mina.transaction(buyerAccount, async () => {
-    await zkAppInstance.verifyProductInfo(leafValueToVerify, productInfoWitness);
-  });
+  // // verifyProductInfo işlemi
+  // const verifyTxn = await Mina.transaction(buyerAccount, async () => {
+  //   await zkAppInstance.verifyProductInfo(leafValueToVerify, productInfoWitness);
+  // });
 
-  // Proof'ları etkinleştirmek için
-  if (useProof) {
-    await verifyTxn.prove();
-  }
+  // // Proof'ları etkinleştirmek için
+  // if (useProof) {
+  //   await verifyTxn.prove();
+  // }
 
-  await verifyTxn.sign([buyerKey]).send();
+  // await verifyTxn.sign([buyerKey]).send();
 
-  console.log('Product information verified successfully.');
+  // console.log('Product information verified successfully.');
 }
 
 main()
