@@ -71,22 +71,6 @@ export class ProductContract extends SmartContract {
     this.isInitialized.set(Bool(true));
   }
 
-
-  // This helper function calculates the root of the Product information Merkle tree
-  computeProductInfoRoot(leaves: Field[]): Field {
-    const tree = new MerkleTree(PRODUCT_INFO_TREE_DEPTH);
-    for (let i = 0; i < leaves.length; i++) {
-      tree.setLeaf(BigInt(i), leaves[i]);
-    }
-    return tree.getRoot();
-  }
-
-  // This helper function returns the root of the Empty sales history Merkle tree
-  getEmptySaleHistoryRoot(): Field {
-    const tree = new MerkleTree(SALE_HISTORY_TREE_DEPTH);
-    return tree.getRoot();
-  }
-
   // Sell method (change the product ownership)
   @method async sell(
     newOwner: PublicKey,
