@@ -82,17 +82,6 @@ async function main() {
   console.log('Originial owner after initialize :', originalOwner.toBase58());
 
 
-  // check the status of the contract
-  const isInitializedBefore = zkAppInstance.isInitialized.get();
-  console.log('Contract is initialized before calling initialize:', isInitializedBefore.toBoolean());
-
-
-
-
-
-
-
-
   // The process of selling the product to a new buyer
   console.log('Selling the product to a new owner...');
 

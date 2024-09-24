@@ -24,14 +24,14 @@ export class ProductContract extends SmartContract {
   @state(PublicKey) currentOwner = State<PublicKey>();
   @state(Field) saleHistoryRoot = State<Field>();
   @state(Field) productInfoRoot = State<Field>();
-  @state(Bool) isInitialized = State<Bool>();
+  // @state(Bool) isInitialized = State<Bool>();
 
   // init method (without parameters)
   init(): void {
     super.init();
     this.originalSeller.set(PublicKey.empty())
     this.currentOwner.set(PublicKey.empty())
-    this.isInitialized.set(new Bool(false));
+    // this.isInitialized.set(new Bool(false));
     this.saleHistoryRoot.set(Field(0));
     this.productInfoRoot.set(Field(0));
 
@@ -43,9 +43,8 @@ export class ProductContract extends SmartContract {
     productInfoRoot: Field // Merkle root of product information
   ): Promise<void> {
     // Check if the contract has not been initialized yet
-    const initialized = this.isInitialized.get();
-    this.isInitialized.requireEquals(initialized);
-    initialized.assertEquals(Bool(false));
+    const storedCurrentOwner = this.currentOwner.get();
+    storedCurrentOwner.assertEquals(PublicKey.empty());
 
     // Get the sender's public key and verify the signature
     const senderPublicKey = this.sender.getAndRequireSignatureV2();
@@ -57,7 +56,6 @@ export class ProductContract extends SmartContract {
     this.productInfoRoot.set(productInfoRoot);
 
     // Update states
-    this.originalSeller.requireEquals(this.originalSeller.get());
     this.originalSeller.set(originalSeller);
     this.currentOwner.set(originalSeller);
 
@@ -67,8 +65,6 @@ export class ProductContract extends SmartContract {
     const emptyHistoryRoot = (new MerkleTree(SALE_HISTORY_TREE_DEPTH)).getRoot();
     this.saleHistoryRoot.set(emptyHistoryRoot);
 
-    // Mark the contract initialized
-    this.isInitialized.set(Bool(true));
   }
 
   // Sell method (change the product ownership)
@@ -79,12 +75,9 @@ export class ProductContract extends SmartContract {
     oldLeafValue: Field
   ): Promise<void> {
     // check that the contract has been initialized
-    const initialized = this.isInitialized.get();
-    this.isInitialized.requireEquals(initialized);
-    initialized.assertEquals(Bool(true));
-
     this.currentOwner.requireEquals(this.currentOwner.get());
     const storedCurrentOwner = this.currentOwner.get();
+    storedCurrentOwner.equals(PublicKey.empty()).assertFalse();
 
     // Get the sender's public key and verify the signature
     const senderPublicKey = this.sender.getAndRequireSignatureV2();
@@ -118,10 +111,10 @@ export class ProductContract extends SmartContract {
     productInfoWitness: ProductInfoWitness
   ): Promise<void> {
     // check that the contract has been initialized
-    const initialized = this.isInitialized.get();
-    this.isInitialized.requireEquals(initialized);
+    this.currentOwner.requireEquals(this.currentOwner.get());
+    const storedCurrentOwner = this.currentOwner.get();
+    storedCurrentOwner.equals(PublicKey.empty()).assertFalse();
 
-    initialized.assertEquals(Bool(true));
 
     // Get product information root
     const productInfoRoot = this.productInfoRoot.get();
