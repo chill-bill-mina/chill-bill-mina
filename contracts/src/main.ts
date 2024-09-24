@@ -152,19 +152,25 @@ async function main() {
   // creating ProductInfoWitness object
   const productInfoWitness = new ProductInfoWitness(productMerkleProof);
 
-  // verifyProductInfo process
-  const verifyTxn = await Mina.transaction(buyerAccount, async () => {
-    await zkAppInstance.verifyProductInfo(leafValueToVerify, productInfoWitness);
-  });
+  await zkAppInstance.productInfoRoot.fetch(); // Update the state
 
-  // to enable proof's
-  if (useProof) {
-    await verifyTxn.prove();
+  const productInfoRootOnChain = zkAppInstance.productInfoRoot.get();
+
+  if (productInfoRootOnChain) {
+    const productInfoRoot = new Field(productInfoRootOnChain.value);
+
+    // Calculate the root using the Merkle proof and leaf value
+    const calculatedRoot = productInfoWitness.calculateRoot(leafValueToVerify);
+
+    // Compare the calculated root with the on-chain root
+    if (calculatedRoot.equals(productInfoRoot).toBoolean()) {
+      console.log('Product information verified successfully.');
+    } else {
+      console.log('Product information could not be verified.');
+    }
+  } else {
+    console.log('productInfoRoot value not found on the blockchain.');
   }
-
-  await verifyTxn.sign([buyerKey]).send();
-
-  console.log('Product information verified successfully.');
 
 }
 

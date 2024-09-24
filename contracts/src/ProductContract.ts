@@ -7,7 +7,6 @@ import {
   MerkleTree,
   MerkleWitness,
   Field,
-  Bool,
 } from 'o1js';
 
 // The depths of the Merkle trees
@@ -24,14 +23,12 @@ export class ProductContract extends SmartContract {
   @state(PublicKey) currentOwner = State<PublicKey>();
   @state(Field) saleHistoryRoot = State<Field>();
   @state(Field) productInfoRoot = State<Field>();
-  // @state(Bool) isInitialized = State<Bool>();
 
   // init method (without parameters)
   init(): void {
     super.init();
     this.originalSeller.set(PublicKey.empty())
     this.currentOwner.set(PublicKey.empty())
-    // this.isInitialized.set(new Bool(false));
     this.saleHistoryRoot.set(Field(0));
     this.productInfoRoot.set(Field(0));
 
@@ -103,26 +100,4 @@ export class ProductContract extends SmartContract {
     // Update new root
     this.saleHistoryRoot.set(newSaleHistoryRoot);
   }
-
-
-  // A method to verify product information
-  @method async verifyProductInfo(
-    leafValue: Field,
-    productInfoWitness: ProductInfoWitness
-  ): Promise<void> {
-    // check that the contract has been initialized
-    this.currentOwner.requireEquals(this.currentOwner.get());
-    const storedCurrentOwner = this.currentOwner.get();
-    storedCurrentOwner.equals(PublicKey.empty()).assertFalse();
-
-
-    // Get product information root
-    const productInfoRoot = this.productInfoRoot.get();
-    this.productInfoRoot.requireEquals(this.productInfoRoot.get()) //v2
-
-    // Verify that the leaf belongs to the tree with Merkle proof
-    const calculatedRoot = productInfoWitness.calculateRoot(leafValue);
-    calculatedRoot.assertEquals(productInfoRoot);
-  }
-
 }
