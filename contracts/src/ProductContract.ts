@@ -64,7 +64,7 @@ export class ProductContract extends SmartContract {
     this.currentOwner.requireEquals(this.currentOwner.get());
 
     // Start sales history (empty tree)
-    const emptyHistoryRoot = this.getEmptySaleHistoryRoot();
+    const emptyHistoryRoot = (new MerkleTree(SALE_HISTORY_TREE_DEPTH)).getRoot();
     this.saleHistoryRoot.set(emptyHistoryRoot);
 
     // Mark the contract initialized

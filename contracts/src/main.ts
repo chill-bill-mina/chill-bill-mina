@@ -6,11 +6,9 @@ import {
   MerkleTree,
   Poseidon,
   UInt64,
-  Bool,
-  PublicKey
+
 } from 'o1js';
 import { ProductContract, ProductInfoWitness, SaleHistoryWitness } from './ProductContract.js';
-
 async function main() {
 
   const useProof = true;
@@ -152,8 +150,6 @@ async function main() {
 
 
 
-
-
   // Verify product information (as an example)
   console.log('Verifying product information...');
 
@@ -180,6 +176,7 @@ async function main() {
   await verifyTxn.sign([buyerKey]).send();
 
   console.log('Product information verified successfully.');
+
 }
 
 main()
