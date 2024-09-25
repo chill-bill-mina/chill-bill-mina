@@ -1,3 +1,3 @@
-import { ProductContract, ProductInfoWitness, SaleHistoryWitness } from './ProductContract.js';
+import { ProductContract } from './ProductContract.js';
 
-export { ProductContract, ProductInfoWitness, SaleHistoryWitness };
+export { ProductContract };
