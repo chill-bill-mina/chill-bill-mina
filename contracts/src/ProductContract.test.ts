@@ -217,8 +217,7 @@ describe('ProductContract', () => {
 
 
         const productInfoLeaves = [
-            Poseidon.hash([Field(12345), Field(67890), Field(11111), Field(22222)]),
-            // other leaves...
+            Poseidon.hash([Field(12345), Field(11111)]),
         ];
 
         const merkleTree = new MerkleTree(4);
@@ -239,11 +238,12 @@ describe('ProductContract', () => {
             productInfoRoot,
         });
 
-        const proof = await ProductProofProgram.verifyProductInfo(publicInput,
+        const proof = await ProductProofProgram.verifyProductInfo(
+            publicInput,
             productID,
             productionDate,
             merkleWitness)
-
+            
         // **Verify Proof**
         const isValid = await ProductProofProgram.verify(proof);
         expect(isValid).toBe(true);
