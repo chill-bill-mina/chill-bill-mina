@@ -1,6 +1,9 @@
-const ProductDetail = ({ params }: { params: { product_id: string } }) => {
-  console.log(params.product_id);
-  return <div>{params.product_id}</div>;
-};
+import ProductPage from "@/components/pages/ProductPage";
 
-export default ProductDetail;
+export default async function ProductDetail({
+  params,
+}: {
+  params: { product_id: string };
+}) {
+  return <ProductPage product_id={params.product_id} />;
+}

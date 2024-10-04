@@ -6,7 +6,7 @@ import { ConnectWallet } from "./ConnectWallet";
 
 export const Header = () => {
   return (
-    <div className="py-4 px-[50px] flex items-center justify-between">
+    <div className="py-4 border-b border-black px-[50px] flex items-center justify-between">
       <Image src={Logo} alt="Logo" />
       <label htmlFor="" className="relative w-[650px]">
         <Image

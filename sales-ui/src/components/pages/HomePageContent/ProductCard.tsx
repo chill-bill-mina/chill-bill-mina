@@ -1,9 +1,9 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-import { GetProductType } from "@/types/product";
+import { GetProductsType } from "@/types/product";
 
-export const ProductCard = (product: GetProductType) => {
+export const ProductCard = (product: GetProductsType) => {
   const router = useRouter();
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
