@@ -1,20 +1,27 @@
 import {
     Field,
     Poseidon,
-    MerkleWitness,
     Struct,
     ZkProgram,
+    MerkleTree
 } from 'o1js';
 
-
-export const PRODUCT_INFO_TREE_DEPTH = 4;
-
-// Merkle proof class
-export class ProductInfoWitness2 extends MerkleWitness(PRODUCT_INFO_TREE_DEPTH) { }
-
-// Public input structure
 export class ProductProofPublicInput extends Struct({
     productInfoRoot: Field,
+    productID: Field,
+    saleDate: Field,
+}) { }
+export class ProductProofPrivateInput extends Struct({
+    ownerName: Field,
+    ownerAddress: Field,
+    price: Field,
+    email: Field,
+    phoneNumber: Field,
+    productDescription: Field,
+    vatAmount: Field,
+    discountAmount: Field,
+    quantity: Field,
+    invoiceNumber: Field,
 }) { }
 
 export const ProductProofProgram = ZkProgram({
@@ -23,22 +30,40 @@ export const ProductProofProgram = ZkProgram({
 
     methods: {
         verifyProductInfo: {
-            privateInputs: [Field, Field, ProductInfoWitness2],
+            privateInputs: [ProductProofPrivateInput],
 
             async method(
                 publicInput: ProductProofPublicInput,
-                productID: Field,
-                productionDate: Field,
-                merkleWitness: ProductInfoWitness2
+                privateInput: ProductProofPrivateInput,
             ) {
-                // Calculate leaf value (hash product information)
-                const leafHash = Poseidon.hash([productID, productionDate]);
+                const productData = [
+                    publicInput.productID,
+                    publicInput.saleDate,
+                    privateInput.ownerName,
+                    privateInput.ownerAddress,
+                    privateInput.price,
+                    privateInput.email,
+                    privateInput.phoneNumber,
+                    privateInput.productDescription,
+                    privateInput.vatAmount,
+                    privateInput.discountAmount,
+                    privateInput.quantity,
+                    privateInput.invoiceNumber,
+                ]
+                // Hash each field individually and add the hashes to an array
+                const fieldValues = Object.values(productData);
+                const fieldHashes = fieldValues.map((value) => Poseidon.hash([value]));
 
-                // Calculate the root using Merkle's proof
-                const computedRoot = merkleWitness.calculateRoot(leafHash);
+                // Create Merkle tree
+                const productInfoTree = new MerkleTree(5);
 
-                // Compare the calculated root with productInfoRoot in public input
-                computedRoot.assertEquals(publicInput.productInfoRoot);
+                for (let i = 0; i < fieldHashes.length; i++) {
+                    productInfoTree.setLeaf(BigInt(i), fieldHashes[i]);
+                }
+                productInfoTree.setLeaf(BigInt(fieldHashes.length), Poseidon.hash([publicInput.productID, publicInput.saleDate]));
+
+                const calculatedProductInfoRoot = productInfoTree.getRoot();
+                publicInput.productInfoRoot.assertEquals(calculatedProductInfoRoot);
             },
         },
     },

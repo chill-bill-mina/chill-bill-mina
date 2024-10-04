@@ -5,22 +5,33 @@ import {
     AccountUpdate,
     MerkleTree,
     Poseidon,
-    UInt64,
     PublicKey,
 } from 'o1js';
 import {
     ProductContract,
-    ProductInfoWitness,
-    SaleHistoryWitness,
 } from './ProductContract.js';
 import {
     ProductProofProgram,
     ProductProofPublicInput,
-    ProductInfoWitness2,
+    ProductProofPrivateInput,
 } from './proofs/ProductProofProgram.js';
+import { ProductData } from './structs/ProductData.js';
 
 let proofsEnabled = true;
 
+const convertStringToField = (str: string) => {
+    const hexString = Buffer.from(str, 'utf-8').toString('hex');
+
+    const BigIntId = BigInt('0x' + hexString);
+
+    return Field(BigIntId);
+}
+
+const convertFieldToString = (field: Field) => {
+    let hexString = BigInt(field.toString()).toString(16);
+
+    return Buffer.from(hexString, 'hex').toString('utf-8');
+}
 
 describe('ProductContract', () => {
     let deployerAccount: any,
@@ -33,8 +44,8 @@ describe('ProductContract', () => {
         zkAppAddress: PublicKey,
         productInfoRoot: Field,
         productInfoTree: MerkleTree,
-        productInfoLeaves: Field[],
-        zkAppInstance: ProductContract;
+        zkAppInstance: ProductContract,
+        productData: ProductData;
     beforeAll(async () => {
         const Local = await Mina.LocalBlockchain({ proofsEnabled });
         Mina.setActiveInstance(Local);
@@ -73,22 +84,35 @@ describe('ProductContract', () => {
 
     it('should initialize the contract', async () => {
 
-        // Leaves representing product information (as an example)
-        productInfoLeaves = [
-            Field(12345), // product id
-            Field(67890), // serial number
-            Field(11111), // Production date
-            Field(22222), // other infos
-        ];
+        productData = {
+            productID: Field(12345),
+            saleDate: Field(20230909),
+            ownerName: convertStringToField("Dealers Name"), // değişir mi
+            ownerAddress: convertStringToField("Brooklyn City, NY"),
+            price: Field(1000),
+            email: convertStringToField("dealer@example.com"),
+            phoneNumber: convertStringToField("+4545"), // değişir
+            productDescription: convertStringToField('This is a product description'),
+            vatAmount: Field(20),
+            discountAmount: Field(10),
+            quantity: Field(1),
+            invoiceNumber: Field(56789),
+        };
+        // Hash each field individually and add the hashes to an array
+        const fieldValues = Object.values(productData);
+        const fieldHashes = fieldValues.map((value) => Poseidon.hash([value]));
 
-        // Creating a Merkle tree with product information
-        productInfoTree = new MerkleTree(4);
-        for (let i = 0; i < productInfoLeaves.length; i++) {
-            productInfoTree.setLeaf(BigInt(i), productInfoLeaves[i]);
+        // Create Merkle tree
+        productInfoTree = new MerkleTree(5);
+
+        for (let i = 0; i < fieldHashes.length; i++) {
+            productInfoTree.setLeaf(BigInt(i), fieldHashes[i]);
         }
+        productInfoTree.setLeaf(BigInt(fieldHashes.length), Poseidon.hash([productData.productID, productData.saleDate]));
 
-        // Calculating Merkle root with product information
+        // Get the root of the Merkle tree
         productInfoRoot = productInfoTree.getRoot();
+
 
         console.log('Initializing the ProductContract with init()...');
         const initTxn = await Mina.transaction(deployerAccount, async () => {
@@ -105,6 +129,7 @@ describe('ProductContract', () => {
 
         const originalOwner = zkAppInstance.currentOwner.get();
         console.log('Originial owner after initialize :', originalOwner.toBase58());
+        console.log("owner name : ", convertFieldToString(productData.ownerName))
         console.log("Deployer Account : ", deployerAccount.toBase58())
         expect(originalOwner.toBase58()).toEqual(deployerAccount.toBase58());
     });
@@ -112,47 +137,44 @@ describe('ProductContract', () => {
 
     it('should sell the product to a new owner', async () => {
 
-        // Sales data (as an example)
-        const saleData = {
-            date: Field(20231010), // sale date
-            price: Field(1000),    // sale price
-        };
-
-        // Calculating hash of sales data
-        const saleDataFields = [saleData.date, saleData.price];
-        const saleDataHash = Poseidon.hash(saleDataFields);
-
-        // Creating a sales history Merkle tree
-        const saleHistoryTree = new MerkleTree(20); // Depth 20
-
-        // Since it is the first sale, the old leaf value is 0 by default
-        const oldLeafValue = Field(0);
-
-        // Determine the leaf index (for example, 0)
-        const leafIndex = UInt64.from(0n);
-
-        // Adding the new leaf value to the tree
-        saleHistoryTree.setLeaf(leafIndex.toBigInt(), saleDataHash);
-
-        // Creating Merkle proof
-        const merkleProof = saleHistoryTree.getWitness(leafIndex.toBigInt());
-
-        // Creating the SaleHistoryWitness object
-        const saleHistoryWitness = new SaleHistoryWitness(merkleProof);
-
         const originalOwner = zkAppInstance.currentOwner.get();
         console.log('Originial owner before selling :', originalOwner.toBase58());
-        // Sell process
+
+        productData = {
+            productID: Field(12345),
+            saleDate: Field(20231010),
+            ownerName: convertStringToField("Alice"), // değişir mi
+            ownerAddress: convertStringToField("Long Island City, NY"),
+            price: Field(1000),
+            email: convertStringToField("alice@example.com"),
+            phoneNumber: convertStringToField("+45675"), // değişir
+            productDescription: convertStringToField('This is a product description'),
+            vatAmount: Field(20),
+            discountAmount: Field(10),
+            quantity: Field(1),
+            invoiceNumber: Field(56789),
+        };
+
+        const fieldValues = Object.values(productData);
+        const fieldHashes = fieldValues.map((value) => Poseidon.hash([value]));
+
+        productInfoTree = new MerkleTree(5);
+
+        for (let i = 0; i < fieldHashes.length; i++) {
+            productInfoTree.setLeaf(BigInt(i), fieldHashes[i]);
+        }
+        productInfoTree.setLeaf(BigInt(fieldHashes.length), Poseidon.hash([productData.productID, productData.saleDate]));
+
+        productInfoRoot = productInfoTree.getRoot();
+
         const sellTxn = await Mina.transaction(originalSellerAccount, async () => {
             await zkAppInstance.sell(
                 buyerAccount,
-                saleDataHash,
-                saleHistoryWitness,
-                oldLeafValue
+                productInfoRoot
+
             );
         });
 
-        // to enable proof's
         if (proofsEnabled) {
             await sellTxn.prove();
         }
@@ -162,88 +184,59 @@ describe('ProductContract', () => {
         console.log('Product sold to new owner.');
 
         const updatedOwner = zkAppInstance.currentOwner.get();
-        console.log('Updated owner:', updatedOwner.toBase58());
+        console.log('Previous owner name:', updatedOwner.toBase58());
 
         expect(updatedOwner.toBase58()).toEqual(buyerAccount.toBase58());
 
     });
 
 
-    it('should verify product information using Merkle proof', async () => {
-
-        // The leaf value you want to validate (for example, product ID)
-        const leafValueToVerify = productInfoLeaves[0]; // Field(12345)
-
-        // Creating a Merkle proof for the relevant leaf
-        const productLeafIndex = UInt64.from(0n); // First leaf
-        const productMerkleProof = productInfoTree.getWitness(productLeafIndex.toBigInt());
-
-        // creating ProductInfoWitness object
-        const productInfoWitness = new ProductInfoWitness(productMerkleProof);
-
-        await zkAppInstance.productInfoRoot.fetch(); // Update the state
-
-        const productInfoRootOnChain = zkAppInstance.productInfoRoot.get();
-
-        if (productInfoRootOnChain) {
-            const productInfoRoot = new Field(productInfoRootOnChain.value);
-
-            // Calculate the root using the Merkle proof and leaf value
-            const calculatedRoot = productInfoWitness.calculateRoot(leafValueToVerify);
-            const isValid = calculatedRoot.equals(productInfoRoot).toBoolean();
-
-            expect(isValid).toBe(true);
-
-            if (isValid) {
-                console.log('Product information verified successfully with merkleproof.');
-            } else {
-                console.log('Product information could not be verified with merkleproof.');
-            }
-        } else {
-            console.log('productInfoRoot value not found on the blockchain.');
-        }
-
-
-    });
-
 
     it('should verify product information using Merkle proof with ZkProgram', async () => {
 
         const { verificationKey } = await ProductProofProgram.compile();
 
-        // product info
-        const productID = Field(12345);
-        const productionDate = Field(11111);
+        productData = {
+            productID: Field(12345),
+            saleDate: Field(20231010),
+            ownerName: convertStringToField("Alice"),
+            ownerAddress: convertStringToField("Long Island City, NY"),
+            price: Field(1000),
+            email: convertStringToField("alice@example.com"),
+            phoneNumber: convertStringToField("+45675"),
+            productDescription: convertStringToField('This is a product description'),
+            vatAmount: Field(20),
+            discountAmount: Field(10),
+            quantity: Field(1),
+            invoiceNumber: Field(56789),
+        };
+        //Fetch the productInfoRoot from the zkAppInstance
+        productInfoRoot = zkAppInstance.productInfoRoot.get();
 
-
-        const productInfoLeaves = [
-            Poseidon.hash([Field(12345), Field(11111)]),
-        ];
-
-        const merkleTree = new MerkleTree(4);
-        for (let i = 0; i < productInfoLeaves.length; i++) {
-            merkleTree.setLeaf(BigInt(i), productInfoLeaves[i]);
-        }
-
-        // Find the index of the leaf want to prove
-        const leafIndex = BigInt(0); // for example first leaf
-
-        // create merkle proof
-        const merkleProof = merkleTree.getWitness(leafIndex);
-        const merkleWitness = new ProductInfoWitness2(merkleProof);
-
-        // create public input
-        const productInfoRoot = merkleTree.getRoot();
         const publicInput = new ProductProofPublicInput({
             productInfoRoot,
+            productID: productData.productID,
+            saleDate: productData.saleDate,
         });
+        const privateInput = new ProductProofPrivateInput({
+            ownerName: productData.ownerName,
+            ownerAddress: productData.ownerAddress,
+            price: productData.price,
+            email: productData.email,
+            phoneNumber: productData.phoneNumber,
+            productDescription: productData.productDescription,
+            vatAmount: productData.vatAmount,
+            discountAmount: productData.discountAmount,
+            quantity: productData.quantity,
+            invoiceNumber: productData.invoiceNumber,
+        })
 
+        // Create proof
         const proof = await ProductProofProgram.verifyProductInfo(
             publicInput,
-            productID,
-            productionDate,
-            merkleWitness)
-            
+            privateInput,
+        );
+
         // **Verify Proof**
         const isValid = await ProductProofProgram.verify(proof);
         expect(isValid).toBe(true);

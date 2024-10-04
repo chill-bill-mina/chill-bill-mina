@@ -4,24 +4,13 @@ import {
   State,
   method,
   PublicKey,
-  MerkleTree,
-  MerkleWitness,
   Field,
 } from 'o1js';
-
-// The depths of the Merkle trees
-const PRODUCT_INFO_TREE_DEPTH = 4; // Depth for product information tree
-const SALE_HISTORY_TREE_DEPTH = 20; // Depth for sales history tree
-
-// Merkle Witness classes
-export class ProductInfoWitness extends MerkleWitness(PRODUCT_INFO_TREE_DEPTH) { }
-export class SaleHistoryWitness extends MerkleWitness(SALE_HISTORY_TREE_DEPTH) { }
 
 export class ProductContract extends SmartContract {
   // state definitions
   @state(PublicKey) originalSeller = State<PublicKey>();
   @state(PublicKey) currentOwner = State<PublicKey>();
-  @state(Field) saleHistoryRoot = State<Field>();
   @state(Field) productInfoRoot = State<Field>();
 
   // init method (without parameters)
@@ -29,7 +18,6 @@ export class ProductContract extends SmartContract {
     super.init();
     this.originalSeller.set(PublicKey.empty())
     this.currentOwner.set(PublicKey.empty())
-    this.saleHistoryRoot.set(Field(0));
     this.productInfoRoot.set(Field(0));
 
   }
@@ -58,18 +46,13 @@ export class ProductContract extends SmartContract {
 
     this.currentOwner.requireEquals(this.currentOwner.get());
 
-    // Start sales history (empty tree)
-    const emptyHistoryRoot = (new MerkleTree(SALE_HISTORY_TREE_DEPTH)).getRoot();
-    this.saleHistoryRoot.set(emptyHistoryRoot);
-
   }
 
   // Sell method (change the product ownership)
   @method async sell(
     newOwner: PublicKey,
-    saleDataHash: Field,
-    saleHistoryWitness: SaleHistoryWitness,
-    oldLeafValue: Field
+    productInfoRoot: Field
+
   ): Promise<void> {
     // check that the contract has been initialized
     this.currentOwner.requireEquals(this.currentOwner.get());
@@ -85,19 +68,8 @@ export class ProductContract extends SmartContract {
     // Update ownership
     this.currentOwner.set(newOwner);
 
-    // Get old root of sales history
-    this.saleHistoryRoot.requireEquals(this.saleHistoryRoot.get()) //v2
-    const oldSaleHistoryRoot = this.saleHistoryRoot.get();
-    // Calculate old root
-    const oldCalculatedRoot = saleHistoryWitness.calculateRoot(oldLeafValue);
+    this.productInfoRoot.requireEquals(this.productInfoRoot.get());
+    this.productInfoRoot.set(productInfoRoot);
 
-    // Verify that the old root matches the root in the contract
-    oldSaleHistoryRoot.assertEquals(oldCalculatedRoot);
-
-    // Calculate new root
-    const newSaleHistoryRoot = saleHistoryWitness.calculateRoot(saleDataHash);
-
-    // Update new root
-    this.saleHistoryRoot.set(newSaleHistoryRoot);
   }
 }
