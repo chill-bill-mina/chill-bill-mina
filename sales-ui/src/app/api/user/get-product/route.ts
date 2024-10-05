@@ -8,8 +8,6 @@ export async function GET(request: NextRequest) {
 
   const res = await FetchData(`/user/products/${product_id}`);
 
-  console.log("res", res);
-
   if (res.error) {
     return Response.error();
   }

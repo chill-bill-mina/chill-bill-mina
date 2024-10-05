@@ -12,7 +12,5 @@ export async function POST(req: Request) {
     return Response.error();
   }
 
-  console.log(res);
-
   return Response.json(res.data);
 }

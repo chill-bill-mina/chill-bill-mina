@@ -1,10 +1,10 @@
-import { removeCookie } from "../../../../actions/cookie-handler";
+import { removeCookieToken } from "@/actions/cookie-handler";
 
 export async function GET() {
   let res;
 
   try {
-    await removeCookie();
+    await removeCookieToken();
     res = {
       status: 200,
     };

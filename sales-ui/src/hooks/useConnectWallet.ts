@@ -2,7 +2,7 @@
 import { useState } from "react";
 
 import { useAppDispatch, useAppSelector } from "@/types/state";
-import { setPublicKeyCookie } from "@/redux/session/thunk";
+import { setPublicKeyCookie, setTokenCookie } from "@/redux/session/thunk";
 import { useQuery } from "./useQuery";
 
 export type SignMessageArgs = {
@@ -29,7 +29,7 @@ export const useConnectWallet = () => {
     null
   );
 
-  const { data, postData } = useQuery<{
+  const { postData } = useQuery<{
     nonce: number;
   }>();
 
@@ -63,8 +63,8 @@ export const useConnectWallet = () => {
 
   const getNonce = (valuePublicKeyBase58: string) => {
     postData("/api/user/auth/nonce", { publicKey: valuePublicKeyBase58 }).then(
-      () => {
-        signMessage(data?.nonce.toString() ?? "");
+      (res) => {
+        signMessage(res?.nonce.toString() ?? "");
       }
     );
   };
@@ -85,11 +85,17 @@ export const useConnectWallet = () => {
         ?.signMessage(signContent)
         .catch((err: any) => err);
 
-      //TODO: verify endpoint doesnt work
-      // postData("/api/user/auth/verify", {
-      //         publicKey: (signRes as SignedData)?.publicKey,
-      //         signature: (signRes as SignedData)?.signature,
-      //       });
+      // TODO: verify endpoint doesnt work
+      postData("/api/user/auth/verify", {
+        publicKey: (signResult as SignedData)?.publicKey,
+        signature: (signResult as SignedData)?.signature,
+      }).then((res) => {
+        dispatch(
+          setTokenCookie({
+            token: res?.token ?? "",
+          })
+        );
+      });
 
       setSignRes(signResult);
     })();

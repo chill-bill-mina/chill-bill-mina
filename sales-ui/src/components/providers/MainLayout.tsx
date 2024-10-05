@@ -13,7 +13,7 @@ export const MainLayout = ({
   const dispatch = useAppDispatch();
   useEffect(() => {
     if (publicKey) {
-      dispatch(setSession({ publicKeyBase58: publicKey }));
+      dispatch(setSession(publicKey));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

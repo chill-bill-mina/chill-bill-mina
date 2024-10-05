@@ -1,18 +1,24 @@
 import { SessionType } from "@/types/session";
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import { deletePublicKeyCookie, setPublicKeyCookie } from "./thunk";
+import {
+  deletePublicKeyCookie,
+  deletePublicKeyToken,
+  setPublicKeyCookie,
+  setTokenCookie,
+} from "./thunk";
 
 const initialState: SessionType = {
   publicKeyBase58: null,
+  token: null,
 };
 
 export const sessionSlice = createSlice({
   name: "session",
   initialState,
   reducers: {
-    setSession: (state, action: PayloadAction<SessionType>) => {
-      state.publicKeyBase58 = action.payload.publicKeyBase58;
+    setSession: (state, action: PayloadAction<string>) => {
+      state.publicKeyBase58 = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -24,6 +30,12 @@ export const sessionSlice = createSlice({
       })
       .addCase(deletePublicKeyCookie.fulfilled, (state) => {
         state.publicKeyBase58 = null;
+      })
+      .addCase(deletePublicKeyToken.fulfilled, (state) => {
+        state.token = null;
+      })
+      .addCase(setTokenCookie.fulfilled, (state, action) => {
+        state.token = action.payload ? action.payload.token : null;
       });
   },
 });

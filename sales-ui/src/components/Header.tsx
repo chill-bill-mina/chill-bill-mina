@@ -3,6 +3,7 @@ import Image from "next/image";
 import Logo from "@/assets/svg/logo.svg";
 import SearchIcon from "@/assets/svg/search-icon.svg";
 import { ConnectWallet } from "./ConnectWallet";
+import { AccountModal } from "./AccountModal";
 
 export const Header = () => {
   return (
@@ -20,7 +21,10 @@ export const Header = () => {
           className="outline-none w-full border border-black rounded-xl pl-9 py-1 h-9 text-base"
         />
       </label>
-      <ConnectWallet />
+      <div className="flex items-center gap-x-6">
+        <AccountModal />
+        <ConnectWallet />
+      </div>
     </div>
   );
 };

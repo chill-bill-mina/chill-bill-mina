@@ -1,15 +1,15 @@
-import { setCookie } from "../../../../actions/cookie-handler";
+import { setCookieToken } from "@/actions/cookie-handler";
 
 export async function POST(req: Request) {
-  const { publicKey } = await req.json();
+  const { token } = await req.json();
 
   let res;
 
   try {
-    await setCookie(publicKey);
+    await setCookieToken(token);
     res = {
       data: {
-        publicKey: publicKey,
+        token: token,
       },
       status: 200,
     };
