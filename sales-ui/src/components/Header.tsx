@@ -3,11 +3,15 @@ import Image from "next/image";
 import Logo from "@/assets/svg/logo.svg";
 import SearchIcon from "@/assets/svg/search-icon.svg";
 import { ConnectWallet } from "./ConnectWallet";
+import { AccountModal } from "./AccountModal";
+import Link from "next/link";
 
 export const Header = () => {
   return (
-    <div className="py-4 px-[50px] flex items-center justify-between">
-      <Image src={Logo} alt="Logo" />
+    <div className="py-4 border-b border-black px-[50px] flex items-center justify-between">
+      <Link href="/">
+        <Image src={Logo} alt="Logo" />
+      </Link>
       <label htmlFor="" className="relative w-[650px]">
         <Image
           src={SearchIcon}
@@ -20,7 +24,10 @@ export const Header = () => {
           className="outline-none w-full border border-black rounded-xl pl-9 py-1 h-9 text-base"
         />
       </label>
-      <ConnectWallet />
+      <div className="flex items-center gap-x-6">
+        <AccountModal />
+        <ConnectWallet />
+      </div>
     </div>
   );
 };

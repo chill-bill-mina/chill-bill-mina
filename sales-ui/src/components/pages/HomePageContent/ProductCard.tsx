@@ -1,15 +1,15 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-import { GetProductType } from "@/types/product";
+import { GetProductsType } from "@/types/product";
 
-export const ProductCard = (product: GetProductType) => {
+export const ProductCard = (product: GetProductsType) => {
   const router = useRouter();
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault();
     e.stopPropagation();
-    router.push(`/product/${product._id}`);
+    router.push(`/buy-product/${product._id}`);
   };
   return (
     <div
