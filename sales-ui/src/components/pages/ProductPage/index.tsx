@@ -37,7 +37,7 @@ const ProductPage = ({ product_id }: { product_id: string }) => {
       </div>
     );
   } else if (state === "step2") {
-    return <Checkout price={data.price} />;
+    return <Checkout price={data.price} productId={data?.productId} />;
   }
 };
 

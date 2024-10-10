@@ -3,8 +3,17 @@ import Image from "next/image";
 import VisaIcon from "@/assets/svg/visa.svg";
 import MınaIcon from "@/assets/svg/mina.svg";
 import ChillBill from "@/assets/images/chillbill.png";
+import { useQuery } from "@/hooks/useQuery";
+import { useAppSelector } from "@/types/state";
+import { useRouter } from "next/navigation";
 
-export const Checkout = ({ price }: { price: number }) => {
+export const Checkout = ({
+  price,
+  productId,
+}: {
+  price: number;
+  productId: string;
+}) => {
   return (
     <div className="flex items-start px-12 mt-10 mb-20">
       <div className="w-2/3 flex flex-col gap-y-8 pr-5">
@@ -14,18 +23,36 @@ export const Checkout = ({ price }: { price: number }) => {
         <PayWithMina />
       </div>
       <div className="w-1/3 flex flex-col pl-5">
-        <BuyBox price={price} />
+        <BuyBox price={price} productId={productId} />
         <ShopWithConfidence />
       </div>
     </div>
   );
 };
 
-const BuyBox = ({ price }: { price: number }) => {
+const BuyBox = ({ price, productId }: { price: number; productId: string }) => {
+  const { postData } = useQuery();
+
+  const { token } = useAppSelector((state) => state.session);
+
+  const router = useRouter();
+
+  const buyFunc = async () => {
+    postData(`/api/user/buy`, {
+      productId,
+      token,
+    }).then((res) => {
+      if (res?.purchaseId) {
+        alert("Purchase Successful");
+        router.push("/my-products");
+      }
+    });
+  };
   return (
     <div className="p-10 bg-[#F0F0F0] rounded-2xl flex flex-col">
       <div className="flex flex-col gap-y-2 mb-6">
         <button
+          onClick={buyFunc}
           className={`w-full bg-[#027BC0] h-[64px] rounded-lg bg-opacity-70 text-2xl text-white `}
         >
           Buy

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface GetProductsType {
   _id: string;
   name: string;
@@ -18,17 +19,7 @@ export interface GetProductType {
   vatAmount: number;
   discountAmount: number;
   description: string;
-  features: ProductFeatureType;
-}
-
-export interface ProductFeatureType {
-  maxCapacityInKg: string;
-  color: string[];
-  reloadFunction: string;
-  maxSpinSpeedInRpm: string;
-  homeConnect: string;
-  aquaStop: string;
-  energyEfficiencyClass: string;
+  features: any;
 }
 
 export interface ProductInfoType {
@@ -43,10 +34,13 @@ export interface ProductInfoType {
 }
 
 export interface GetMyProductType {
-  _id: string;
-  imageUrl: string;
-  name: string;
-  productId: string;
-  price: number;
-  contractAddress?: string;
+  product: {
+    _id: string;
+    imageUrl: string;
+    name: string;
+    productId: string;
+    price: number;
+  };
+  status: string;
+  quantity: number;
 }
