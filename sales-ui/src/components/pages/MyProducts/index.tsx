@@ -59,36 +59,35 @@ const MyProducts = () => {
             <th>Name</th>
             <th>Product ID</th>
             <th>Price</th>
+            <th>Quantity</th>
             <th>Contract</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-          {products.map((product) => (
-            <tr key={product._id} className="border-t border-[#D9D9D9]">
+          {products.map((purchase) => (
+            <tr
+              key={purchase.product._id}
+              className="border-t border-[#D9D9D9]"
+            >
               <td className="p-5 flex items-center justify-center">
                 <Image
-                  src={product.imageUrl}
-                  alt={product.name}
+                  src={purchase.product.imageUrl}
+                  alt={purchase.product.name}
                   width={72}
                   height={72}
                 />
               </td>
-              <td className="text-center">{product.name}</td>
-              <td className="text-center">#{product.productId}</td>
-              <td className="text-center">{product.price}$</td>
-              <td
-                className={`text-center ${
-                  !product?.contractAddress && "text-[#FFB200]"
-                }`}
-              >
-                {product?.contractAddress ? product.contractAddress : "pending"}
-              </td>
+              <td className="text-center">{purchase.product.name}</td>
+              <td className="text-center">#{purchase.product.productId}</td>
+              <td className="text-center">{purchase.product.price}$</td>
+              <td className={`text-center`}>{purchase.status}</td>
+              <td className={`text-center`}>{purchase.quantity}</td>
               <td>
                 <div className="flex items-center justify-center">
                   <button
                     onClick={() =>
-                      router.push(`/product-detail/${product?._id}`)
+                      router.push(`/product-detail/${purchase.product?._id}`)
                     }
                     className="bg-[#71B5DC] text-lg px-4 text-white py-1"
                   >

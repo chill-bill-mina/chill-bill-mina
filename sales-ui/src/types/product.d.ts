@@ -43,10 +43,13 @@ export interface ProductInfoType {
 }
 
 export interface GetMyProductType {
-  _id: string;
-  imageUrl: string;
-  name: string;
-  productId: string;
-  price: number;
-  contractAddress?: string;
+  product: {
+    _id: string;
+    imageUrl: string;
+    name: string;
+    productId: string;
+    price: number;
+  };
+  status: string;
+  quantity: number;
 }

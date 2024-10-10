@@ -38,15 +38,34 @@ export const FetchData = async (
   }
 };
 
-export const PostData = async (endpoint: string, body: any) => {
+export const PostData = async (
+  endpoint: string,
+  body: any,
+  token?: string,
+  auth?: boolean
+) => {
   try {
-    const res = await fetch(API_URL + endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
+    let res;
+
+    if (!!auth) {
+      res = await fetch(API_URL + endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+    } else {
+      res = await fetch(API_URL + endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+    }
+
     const data = await res.json();
     return {
       data,
