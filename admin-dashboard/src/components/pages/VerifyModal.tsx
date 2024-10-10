@@ -4,9 +4,14 @@ import { useState } from "react";
 export const VerifyModal = (purchase: GetPurchaseResponse) => {
   const [state, setState] = useState<"init" | "sell">("init");
 
-  const sellHandler = () => {};
+  const sellHandler = () => {
+    //TODO
+  };
 
-  const initHandler = () => {};
+  const initHandler = () => {
+    //TODO:
+    setState("sell");
+  };
 
   return (
     <>
@@ -25,7 +30,7 @@ export const VerifyModal = (purchase: GetPurchaseResponse) => {
             >
               1
             </button>
-            <span>İnitialize</span>
+            <span>Initialize</span>
           </div>
           <div className="flex flex-col items-cente">
             <button
@@ -48,7 +53,7 @@ export const VerifyModal = (purchase: GetPurchaseResponse) => {
           }}
           className="bg-[#71B5DC] w-1/2 p-4 text-white rounded-lg"
         >
-          {state === "init" ? "İnitialize" : "Sell"}
+          {state === "init" ? "Initialize" : "Sell"}
         </button>
       </div>
     </>
