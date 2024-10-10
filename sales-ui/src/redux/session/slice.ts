@@ -20,6 +20,9 @@ export const sessionSlice = createSlice({
     setSession: (state, action: PayloadAction<string>) => {
       state.publicKeyBase58 = action.payload;
     },
+    setToken: (state, action: PayloadAction<string>) => {
+      state.token = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -41,6 +44,6 @@ export const sessionSlice = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const { setSession } = sessionSlice.actions;
+export const { setSession, setToken } = sessionSlice.actions;
 
 export default sessionSlice.reducer;

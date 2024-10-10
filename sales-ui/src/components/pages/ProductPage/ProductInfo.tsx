@@ -1,13 +1,22 @@
 import { ProductInfoType } from "@/types/product";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 export const ProductInfo = ({
   product_info,
 }: {
   product_info: ProductInfoType;
 }) => {
-  const buyFunction = () => {
-    //TODO: Implement buy function
+  const pathname = usePathname();
+
+  const pageType = pathname.split("/")[1];
+
+  const productHandler = () => {
+    if (pageType === "product-detail") {
+      return;
+    } else if (pageType === "buy-product") {
+      //TODO: Implement buy function
+    }
   };
   return (
     <div className="w-full flex items-start">
@@ -57,10 +66,12 @@ export const ProductInfo = ({
           </div>
         )}
         <button
-          onClick={buyFunction}
-          className="w-full bg-[#027BC0] mt-8 h-[72px] rounded-lg bg-opacity-70 text-2xl text-white"
+          onClick={productHandler}
+          className={`w-full bg-[#027BC0] mt-8 h-[72px] rounded-lg bg-opacity-70 text-2xl text-white ${
+            pageType === "product-detail" && "cursor-default"
+          }`}
         >
-          Buy Now
+          {pageType === "buy-product" ? "Buy Now" : "Product Detail"}
         </button>
       </div>
     </div>

@@ -9,7 +9,7 @@ export const ProductCard = (product: GetProductsType) => {
   const handleClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault();
     e.stopPropagation();
-    router.push(`/product/${product._id}`);
+    router.push(`/buy-product/${product._id}`);
   };
   return (
     <div

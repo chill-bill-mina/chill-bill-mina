@@ -54,7 +54,7 @@ export const setTokenCookie = createAsyncThunk(
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          publicKey: data.token,
+          token: data.token,
         }),
       });
 

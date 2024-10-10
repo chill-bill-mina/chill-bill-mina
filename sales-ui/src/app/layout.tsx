@@ -21,10 +21,14 @@ export default function RootLayout({
 }>) {
   const publicKey = cookies().get("publicKey");
 
+  const token = cookies().get("token");
+
   return (
     <html lang="en">
       <body className={`${robotoSlab.className} antialiased`}>
-        <Providers publicKey={publicKey?.value}>{children}</Providers>
+        <Providers publicKey={publicKey?.value} token={token?.value}>
+          {children}
+        </Providers>
       </body>
     </html>
   );

@@ -41,3 +41,12 @@ export interface ProductInfoType {
   price: number;
   name: string;
 }
+
+export interface GetMyProductType {
+  _id: string;
+  imageUrl: string;
+  name: string;
+  productId: string;
+  price: number;
+  contractAddress?: string;
+}

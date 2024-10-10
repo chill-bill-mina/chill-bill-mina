@@ -1,13 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { API_URL } from "./constant";
 
-export const FetchData = async (endpoint: string) => {
+export const FetchData = async (
+  endpoint: string,
+  token?: string,
+  auth?: boolean
+) => {
   try {
-    const res = await fetch(API_URL + endpoint, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    let res;
+    if (!!auth) {
+      res = await fetch(API_URL + endpoint, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } else {
+      res = await fetch(API_URL + endpoint, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    }
 
     const data = await res.json();
 

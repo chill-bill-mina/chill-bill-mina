@@ -7,13 +7,17 @@ import { MainLayout } from "./MainLayout";
 const Providers = ({
   children,
   publicKey,
+  token,
 }: {
   children: React.ReactNode;
   publicKey?: string;
+  token?: string;
 }) => {
   return (
     <Provider store={store}>
-      <MainLayout publicKey={publicKey}>{children}</MainLayout>
+      <MainLayout publicKey={publicKey} token={token}>
+        {children}
+      </MainLayout>
     </Provider>
   );
 };
