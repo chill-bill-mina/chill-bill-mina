@@ -85,7 +85,6 @@ export const useConnectWallet = () => {
         ?.signMessage(signContent)
         .catch((err: any) => err);
 
-      // TODO: verify endpoint doesnt work
       postData("/api/user/auth/verify", {
         publicKey: (signResult as SignedData)?.publicKey,
         signature: (signResult as SignedData)?.signature,

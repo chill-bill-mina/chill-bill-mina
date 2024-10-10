@@ -62,7 +62,7 @@ export const useConnectWallet = () => {
   };
 
   const getNonce = (valuePublicKeyBase58: string) => {
-    postData("/api/user/auth/nonce", { publicKey: valuePublicKeyBase58 }).then(
+    postData("/api/admin/auth/nonce", { publicKey: valuePublicKeyBase58 }).then(
       (res) => {
         signMessage(res?.nonce.toString() ?? "");
       }
@@ -85,8 +85,7 @@ export const useConnectWallet = () => {
         ?.signMessage(signContent)
         .catch((err: any) => err);
 
-      // TODO: verify endpoint doesnt work
-      postData("/api/user/auth/verify", {
+      postData("/api/admin/auth/verify", {
         publicKey: (signResult as SignedData)?.publicKey,
         signature: (signResult as SignedData)?.signature,
       }).then((res) => {
