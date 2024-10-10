@@ -2,11 +2,14 @@
 
 import { useQuery } from "@/hooks/useQuery";
 import { GetProductType } from "@/types/product";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ProductInfo } from "./ProductInfo";
 import { ProductOverview } from "./ProductOverview";
+import { Checkout } from "./Checkout";
 
 const ProductPage = ({ product_id }: { product_id: string }) => {
+  const [state, setState] = useState<"step1" | "step2">("step1");
+
   const { data, fetchData } = useQuery<GetProductType>();
 
   useEffect(() => {
@@ -16,21 +19,26 @@ const ProductPage = ({ product_id }: { product_id: string }) => {
 
   if (!data) return null;
 
-  return (
-    <div className="m-[50px]">
-      <ProductInfo
-        product_info={{
-          product_id: data.productId,
-          features: data.features,
-          _id: data._id,
-          imageUrl: data.imageUrl,
-          name: data.name,
-          price: data.price,
-        }}
-      />
-      <ProductOverview features={data.features} />
-    </div>
-  );
+  if (state === "step1") {
+    return (
+      <div className="m-[50px]">
+        <ProductInfo
+          product_info={{
+            product_id: data.productId,
+            features: data.features,
+            _id: data._id,
+            imageUrl: data.imageUrl,
+            name: data.name,
+            price: data.price,
+          }}
+          setState={setState}
+        />
+        <ProductOverview features={data.features} />
+      </div>
+    );
+  } else if (state === "step2") {
+    return <Checkout price={data.price} />;
+  }
 };
 
 export default ProductPage;

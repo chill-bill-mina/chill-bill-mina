@@ -4,8 +4,10 @@ import { usePathname } from "next/navigation";
 
 export const ProductInfo = ({
   product_info,
+  setState,
 }: {
   product_info: ProductInfoType;
+  setState: React.Dispatch<React.SetStateAction<"step1" | "step2">>;
 }) => {
   const pathname = usePathname();
 
@@ -15,7 +17,7 @@ export const ProductInfo = ({
     if (pageType === "product-detail") {
       return;
     } else if (pageType === "buy-product") {
-      //TODO: Implement buy function
+      setState("step2");
     }
   };
   return (
