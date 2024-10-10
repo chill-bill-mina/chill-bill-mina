@@ -18,9 +18,8 @@ export class ProductProofPublicInput extends Struct({
 
 export class ProductProofPublicOutput extends Struct({
     productInfoRoot: Field,
-    productID: Field,
-    saleDate: Field,
-    owner: PublicKey
+    owner: PublicKey,
+    dealer: PublicKey,
 }) { }
 
 export class ProductProofPrivateInput extends Struct({
@@ -80,10 +79,11 @@ export const ProductProofProgram = ZkProgram({
                 //Fetch the productInfoRoot and currentOwner from the zkAppInstance
                 const onChainProductInfoRoot = zkAppInstance.productInfoRoot.get();
                 const owner = zkAppInstance.currentOwner.get();
+                const dealer = zkAppInstance.originalSeller.get();
 
                 onChainProductInfoRoot.assertEquals(calculatedProductInfoRoot);
 
-                return new ProductProofPublicOutput({ productInfoRoot: onChainProductInfoRoot, productID: publicInput.productID, saleDate: publicInput.saleDate, owner: owner });
+                return new ProductProofPublicOutput({ productInfoRoot: onChainProductInfoRoot, owner: owner, dealer: dealer });
 
             },
         },
