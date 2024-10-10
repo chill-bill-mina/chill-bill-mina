@@ -3,14 +3,26 @@ import {
     Poseidon,
     Struct,
     ZkProgram,
-    MerkleTree
+    MerkleTree,
+    PublicKey,
 } from 'o1js';
 
+import { ProductContract } from '../ProductContract';
+
+
 export class ProductProofPublicInput extends Struct({
+    productID: Field,
+    saleDate: Field,
+    zkAppAddress: PublicKey
+}) { }
+
+export class ProductProofPublicOutput extends Struct({
     productInfoRoot: Field,
     productID: Field,
     saleDate: Field,
+    owner: PublicKey
 }) { }
+
 export class ProductProofPrivateInput extends Struct({
     ownerName: Field,
     ownerAddress: Field,
@@ -27,7 +39,7 @@ export class ProductProofPrivateInput extends Struct({
 export const ProductProofProgram = ZkProgram({
     name: 'ProductProofProgram',
     publicInput: ProductProofPublicInput,
-
+    publicOutput: ProductProofPublicOutput,
     methods: {
         verifyProductInfo: {
             privateInputs: [ProductProofPrivateInput],
@@ -35,7 +47,7 @@ export const ProductProofProgram = ZkProgram({
             async method(
                 publicInput: ProductProofPublicInput,
                 privateInput: ProductProofPrivateInput,
-            ) {
+            ): Promise<ProductProofPublicOutput> {
                 const productData = [
                     publicInput.productID,
                     publicInput.saleDate,
@@ -63,8 +75,15 @@ export const ProductProofProgram = ZkProgram({
                 productInfoTree.setLeaf(BigInt(fieldHashes.length), Poseidon.hash([publicInput.productID, publicInput.saleDate]));
 
                 const calculatedProductInfoRoot = productInfoTree.getRoot();
-                publicInput.productInfoRoot.assertEquals(calculatedProductInfoRoot);
+                const zkAppInstance = new ProductContract(publicInput.zkAppAddress);
 
+                //Fetch the productInfoRoot and currentOwner from the zkAppInstance
+                const onChainProductInfoRoot = zkAppInstance.productInfoRoot.get();
+                const owner = zkAppInstance.currentOwner.get();
+
+                onChainProductInfoRoot.assertEquals(calculatedProductInfoRoot);
+
+                return new ProductProofPublicOutput({ productInfoRoot: onChainProductInfoRoot, productID: publicInput.productID, saleDate: publicInput.saleDate, owner: owner });
 
             },
         },

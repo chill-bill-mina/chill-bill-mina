@@ -214,17 +214,10 @@ describe('ProductContract', () => {
             invoiceNumber: Field(56789),
         };
 
-
-        const zkAppInstance2 = new ProductContract(zkAppAddress);
-
-        //Fetch the productInfoRoot from the zkAppInstance
-        productInfoRoot = zkAppInstance2.productInfoRoot.get();
-        console.log("Product Info Root : ", productInfoRoot)
-
         const publicInput = new ProductProofPublicInput({
-            productInfoRoot,
             productID: productData.productID,
             saleDate: productData.saleDate,
+            zkAppAddress: zkAppAddress,
         });
         const privateInput = new ProductProofPrivateInput({
             ownerName: productData.ownerName,
@@ -245,9 +238,11 @@ describe('ProductContract', () => {
             privateInput,
         );
 
+        console.log('Proof:', proof);
 
-        const publicInputFromProof = proof.publicInput;
-        console.log('Public Input:', publicInputFromProof.saleDate.toString());
+
+        const publicOutputFromProof = proof.publicOutput;
+        console.log('Public Output:', publicOutputFromProof.owner.toString());
 
 
         // **Verify Proof**

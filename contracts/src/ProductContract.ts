@@ -33,7 +33,6 @@ export class ProductContract extends SmartContract {
 
     // Get the sender's public key and verify the signature
     const senderPublicKey = this.sender.getAndRequireSignatureV2();
-
     // Verify that the original seller initiated the transaction
     originalSeller.assertEquals(senderPublicKey);
 
