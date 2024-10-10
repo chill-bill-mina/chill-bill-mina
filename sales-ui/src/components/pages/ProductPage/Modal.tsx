@@ -1,4 +1,7 @@
 export const Modal = () => {
+  const generate = () => {
+    //TODO
+  };
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-60 z-10 pointer-events-none"></div>
@@ -10,7 +13,10 @@ export const Modal = () => {
           <input type="checkbox" checked />
           <p>Warranty Certificate</p>
         </div>
-        <button className="bg-[#027BC0] bg-opacity-50 mt-8 text-white px-4 py-2">
+        <button
+          onClick={generate}
+          className="bg-[#027BC0] bg-opacity-50 mt-8 text-white px-4 py-2"
+        >
           Generate Document
         </button>
       </div>
