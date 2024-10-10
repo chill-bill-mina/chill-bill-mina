@@ -16,7 +16,7 @@ export const ProductCard = (product: GetProductsType) => {
       onClick={handleClick}
       className="w-[300px] cursor-pointer flex flex-col items-center justify-center gap-y-9"
     >
-      <div className="max-w-[200px] max-h-[200px] relative min-w-[100px] min-h-[100px]">
+      <div className="max-w-[300px] max-h-[300px] relative min-w-[150px] min-h-[150px]">
         <Image
           src={product.imageUrl}
           alt={product.name}

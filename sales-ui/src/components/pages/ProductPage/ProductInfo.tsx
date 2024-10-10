@@ -1,6 +1,9 @@
+import { useOutsideClick } from "@/hooks/useOutsideClick";
 import { ProductInfoType } from "@/types/product";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { Modal } from "./Modal";
 
 export const ProductInfo = ({
   product_info,
@@ -13,13 +16,22 @@ export const ProductInfo = ({
 
   const pageType = pathname.split("/")[1];
 
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+
+  const closeModal = () => {
+    setModalOpen(false);
+  };
+
   const productHandler = () => {
     if (pageType === "product-detail") {
-      return;
+      setModalOpen(true);
     } else if (pageType === "buy-product") {
       setState("step2");
     }
   };
+
+  const ref = useOutsideClick(closeModal);
+
   return (
     <div className="w-full flex items-start">
       <div className="w-1/2 pr-[100px] border-r border-black border-opacity-50">
@@ -67,14 +79,17 @@ export const ProductInfo = ({
             </div>
           </div>
         )}
-        <button
-          onClick={productHandler}
-          className={`w-full bg-[#027BC0] mt-8 h-[72px] rounded-lg bg-opacity-70 text-2xl text-white ${
-            pageType === "product-detail" && "cursor-default"
-          }`}
-        >
-          {pageType === "buy-product" ? "Buy Now" : "Product Detail"}
-        </button>
+        <div ref={ref}>
+          <button
+            onClick={productHandler}
+            className={`w-full bg-[#027BC0] mt-8 h-[72px] rounded-lg bg-opacity-70 text-2xl text-white ${
+              pageType === "product-detail" && "cursor-default"
+            }`}
+          >
+            {pageType === "buy-product" ? "Buy Now" : "Get Documents"}
+          </button>
+          {modalOpen && <Modal />}
+        </div>
       </div>
     </div>
   );
