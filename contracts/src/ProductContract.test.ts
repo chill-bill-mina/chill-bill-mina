@@ -6,7 +6,9 @@ import {
     MerkleTree,
     Poseidon,
     PublicKey,
+
 } from 'o1js';
+import { verify } from 'o1js';
 import {
     ProductContract,
 } from './ProductContract.js';
@@ -46,6 +48,7 @@ describe('ProductContract', () => {
         productInfoTree: MerkleTree,
         zkAppInstance: ProductContract,
         productData: ProductData;
+
     beforeAll(async () => {
         const Local = await Mina.LocalBlockchain({ proofsEnabled });
         Mina.setActiveInstance(Local);
@@ -210,8 +213,13 @@ describe('ProductContract', () => {
             quantity: Field(1),
             invoiceNumber: Field(56789),
         };
+
+
+        const zkAppInstance2 = new ProductContract(zkAppAddress);
+
         //Fetch the productInfoRoot from the zkAppInstance
-        productInfoRoot = zkAppInstance.productInfoRoot.get();
+        productInfoRoot = zkAppInstance2.productInfoRoot.get();
+        console.log("Product Info Root : ", productInfoRoot)
 
         const publicInput = new ProductProofPublicInput({
             productInfoRoot,
@@ -237,8 +245,13 @@ describe('ProductContract', () => {
             privateInput,
         );
 
+
+        const publicInputFromProof = proof.publicInput;
+        console.log('Public Input:', publicInputFromProof.saleDate.toString());
+
+
         // **Verify Proof**
-        const isValid = await ProductProofProgram.verify(proof);
+        const isValid = await verify(proof, verificationKey);
         expect(isValid).toBe(true);
         if (isValid) {
             console.log('Proof is valid, product info verified.');

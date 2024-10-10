@@ -72,4 +72,5 @@ export class ProductContract extends SmartContract {
     this.productInfoRoot.set(productInfoRoot);
 
   }
+
 }

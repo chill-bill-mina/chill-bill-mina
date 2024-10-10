@@ -64,6 +64,8 @@ export const ProductProofProgram = ZkProgram({
 
                 const calculatedProductInfoRoot = productInfoTree.getRoot();
                 publicInput.productInfoRoot.assertEquals(calculatedProductInfoRoot);
+
+
             },
         },
     },
