@@ -20,38 +20,16 @@ export const PurchasesPage = () => {
 
   const ref = useOutsideClick(closeModal);
 
-  useEffect(() => {
-    setPurchases([
-      {
-        imageUrl:
-          "https://media3.bsh-group.com/Product_Shots/900x/MCSA03336080_WIW28501GB_def.webp",
-        ownerName: "John Doe",
-        ownerAddress: "0x1234567890",
-        price: 100,
-        productID: "1",
-        productName: "Product 1",
-        purchaseId: "66fed751baecf9295468d736",
-        quantity: 1,
-        invoiceNumber: "56789",
-        saleDate: "20230909",
-        email: "keremkaya@gmail.com",
-        phoneNumber: "+4545",
-        productDescription: "This is a product description",
-        vatAmount: 20,
-        discountAmount: 10,
-      },
-    ]);
-  }, []);
-
   const { token } = useAppSelector((state) => state.session);
 
-  //   useEffect(() => {
-  //     if (!token) return;
-  //     postData(`/api/admin/purchases`, { token }).then((res) => {
-  //       setPurchases(res.purchases);
-  //     });
-  //     // eslint-disable-next-line react-hooks/exhaustive-deps
-  //   }, [token]);
+  useEffect(() => {
+    if (!token) return;
+    postData(`/api/admin/purchases`, { token }).then((res) => {
+      setPurchases(res.purchases);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
   return (
     <div className="px-12 mt-8">
       <div className="p-2 w-full flex items-center justify-between">
