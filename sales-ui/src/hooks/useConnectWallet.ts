@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/types/state";
 import { setPublicKeyCookie, setTokenCookie } from "@/redux/session/thunk";
 import { useQuery } from "./useQuery";
+import { useRouter } from "next/navigation";
 
 export type SignMessageArgs = {
   message: string;
@@ -28,6 +29,8 @@ export const useConnectWallet = () => {
   const [signRes, setSignRes] = useState<SignedData | ProviderError | null>(
     null
   );
+
+  const router = useRouter();
 
   const { postData } = useQuery<{
     nonce: number;
@@ -56,6 +59,8 @@ export const useConnectWallet = () => {
           publicKeyBase58: valuePublicKeyBase58,
         })
       );
+
+      router.push("/purchases");
 
       getNonce(valuePublicKeyBase58);
     })();

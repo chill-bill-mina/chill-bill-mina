@@ -1,4 +1,22 @@
 {
   "version": 1,
-  "deployAliases": {}
+  "deployAliases": {
+    "chill-bill": {
+      "networkId": "testnet",
+      "url": "https://api.minascan.io/node/devnet/v1/graphql",
+      "keyPath": "keys/chill-bill.json",
+      "feepayerKeyPath": "/Users/kutaysari/.cache/zkapp-cli/keys/chill-bill-pair.json",
+      "feepayerAlias": "chill-bill-pair",
+      "fee": "0.1",
+      "smartContract": "ProductContract"
+    },
+    "chill-bill-dev": {
+      "networkId": "testnet",
+      "url": "https://api.minascan.io/node/devnet/v1/graphql",
+      "keyPath": "keys/chill-bill-dev.json",
+      "feepayerKeyPath": "/Users/kutaysari/.cache/zkapp-cli/keys/pair.json",
+      "feepayerAlias": "pair",
+      "fee": "0.1"
+    }
+  }
 }
