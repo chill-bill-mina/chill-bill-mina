@@ -1,7 +1,7 @@
-import React from "react";
+import { WarrantyPage } from "@/components/pages/WarrantyPage";
 
 const Warranty = () => {
-  return <div>Warranty</div>;
+  return <WarrantyPage />;
 };
 
 export default Warranty;
