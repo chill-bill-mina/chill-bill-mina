@@ -14,4 +14,24 @@ export interface GetPurchaseResponse {
   invoiceNumber: string;
   imageUrl: string;
   productName: string;
+  contractDetails: ContractDetailType;
+}
+
+export interface ContractDetailType {
+  contractAddress: string;
+
+  deploy: {
+    transactionHash: string;
+    isDeployed: boolean;
+  };
+
+  init: {
+    transactionHash: string;
+    isInitialized: boolean;
+  };
+
+  sell: {
+    transactionHash: string;
+    isSold: boolean;
+  };
 }

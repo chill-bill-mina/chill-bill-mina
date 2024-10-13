@@ -25,11 +25,11 @@ export default class ZkappWorkerClient {
 
   createInitTransaction(
     deployerAccount: PublicKey,
-    productIndfo: GetPurchaseResponse
+    productInfo: GetPurchaseResponse
   ) {
     return this._call("createInitTransaction", {
       deployerAccountBase58: deployerAccount.toBase58(),
-      productIndfo,
+      productInfo,
     });
   }
 
@@ -97,9 +97,7 @@ export default class ZkappWorkerClient {
         fn,
         args,
       };
-      console.log("Posting...");
       this.worker.postMessage(message);
-      console.log("Successfully Posted.");
       this.nextId++;
     });
   }

@@ -80,26 +80,26 @@ const functions = {
   },
   createInitTransaction: async (args: {
     deployerAccountBase58: string;
-    productIndfo: GetPurchaseResponse;
+    productInfo: GetPurchaseResponse;
   }) => {
     const deployerAccount: PublicKey = PublicKey.fromBase58(
       args.deployerAccountBase58
     );
     const productData = {
-      productID: Field(args.productIndfo.productID),
-      saleDate: Field(args.productIndfo.saleDate),
-      ownerName: convertStringToField(args.productIndfo.ownerName),
-      ownerAddress: convertStringToField(args.productIndfo.ownerAddress),
-      price: Field(args.productIndfo.price),
-      email: convertStringToField(args.productIndfo.email),
-      phoneNumber: convertStringToField(args.productIndfo.phoneNumber),
+      productID: Field(args.productInfo.productID),
+      saleDate: Field(args.productInfo.saleDate),
+      ownerName: convertStringToField(args.productInfo.ownerName),
+      ownerAddress: convertStringToField(args.productInfo.ownerAddress),
+      price: Field(args.productInfo.price),
+      email: convertStringToField(args.productInfo.email),
+      phoneNumber: convertStringToField(args.productInfo.phoneNumber),
       productDescription: convertStringToField(
-        args.productIndfo.productDescription
+        args.productInfo.productDescription
       ),
-      vatAmount: Field(args.productIndfo.vatAmount),
-      discountAmount: Field(args.productIndfo.discountAmount),
-      quantity: Field(args.productIndfo.quantity),
-      invoiceNumber: Field(args.productIndfo.invoiceNumber),
+      vatAmount: Field(args.productInfo.vatAmount),
+      discountAmount: Field(args.productInfo.discountAmount),
+      quantity: Field(args.productInfo.quantity),
+      invoiceNumber: Field(args.productInfo.invoiceNumber),
     };
     const fieldValues = Object.values(productData);
     const fieldHashes = fieldValues.map((value) => Poseidon.hash([value]));
@@ -122,7 +122,48 @@ const functions = {
     });
     state.transaction = transaction;
   },
-  proveUpdateTransaction: async (args: {}) => {
+  createSellTransaction: async (args: {
+    buyerAccountBase58: string;
+    productInfo: GetPurchaseResponse;
+  }) => {
+    const buyerAccount: PublicKey = PublicKey.fromBase58(
+      args.buyerAccountBase58
+    );
+    const productData = {
+      productID: Field(args.productInfo.productID),
+      saleDate: Field(args.productInfo.saleDate),
+      ownerName: convertStringToField(args.productInfo.ownerName),
+      ownerAddress: convertStringToField(args.productInfo.ownerAddress),
+      price: Field(args.productInfo.price),
+      email: convertStringToField(args.productInfo.email),
+      phoneNumber: convertStringToField(args.productInfo.phoneNumber),
+      productDescription: convertStringToField(
+        args.productInfo.productDescription
+      ),
+      vatAmount: Field(args.productInfo.vatAmount),
+      discountAmount: Field(args.productInfo.discountAmount),
+      quantity: Field(args.productInfo.quantity),
+      invoiceNumber: Field(args.productInfo.invoiceNumber),
+    };
+    const fieldValues = Object.values(productData);
+    const fieldHashes = fieldValues.map((value) => Poseidon.hash([value]));
+
+    // Create Merkle tree
+    const productInfoTree = new MerkleTree(5);
+
+    for (let i = 0; i < fieldHashes.length; i++) {
+      productInfoTree.setLeaf(BigInt(i), fieldHashes[i]);
+    }
+    productInfoTree.setLeaf(
+      BigInt(fieldHashes.length),
+      Poseidon.hash([productData.productID, productData.saleDate])
+    );
+
+    // Get the root of the Merkle tree
+    const productInfoRoot = productInfoTree.getRoot();
+    //TODO:
+  },
+  proveUpdateTransaction: async () => {
     await state.transaction!.prove();
   },
 };

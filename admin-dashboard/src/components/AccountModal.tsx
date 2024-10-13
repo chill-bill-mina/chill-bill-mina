@@ -2,7 +2,7 @@
 
 import { useAppSelector } from "@/types/state";
 import { useState } from "react";
-import { useOutsideClick } from "./useOutsideClick";
+import { useDetectClickOutside } from "react-detect-click-outside";
 
 export const AccountModal = () => {
   const { token } = useAppSelector((state) => state.session);
@@ -21,17 +21,20 @@ export const AccountModal = () => {
     handleClose();
   };
 
-  const ref = useOutsideClick(handleClose);
+  const ref = useDetectClickOutside({ onTriggered: handleClose });
 
   if (!token) return null;
 
   return (
-    <div ref={ref} className="relative">
+    <div className="relative">
       <button onClick={toggleOpen} className="font-medium text-xl">
         Account
       </button>
       {isOpen && (
-        <div className="absolute top-12 left-0 bg-white border-2 border-black z-40">
+        <div
+          ref={ref}
+          className="absolute top-12 left-0 bg-white border-2 border-black z-40"
+        >
           <button
             onClick={handleMyProducts}
             className="px-4 py-3 border-b-2 border-black text-nowrap"

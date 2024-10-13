@@ -5,27 +5,19 @@ import { useAppSelector } from "@/types/state";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { VerifyModal } from "./VerifyModal";
-import { useOutsideClick } from "../useOutsideClick";
 
 export const PurchasesPage = () => {
   const { postData } = useQuery();
-
-  const [openModal, setOpenModal] = useState<boolean>(false);
-
-  const closeModal = () => {
-    setOpenModal(false);
-  };
-
+  const [openModalP, setOpenModalP] = useState<GetPurchaseResponse | null>(
+    null
+  );
   const [purchases, setPurchases] = useState<GetPurchaseResponse[]>([]);
-
-  const ref = useOutsideClick(closeModal);
-
   const { token } = useAppSelector((state) => state.session);
 
   useEffect(() => {
     if (!token) return;
     postData(`/api/admin/purchases`, { token }).then((res) => {
-      setPurchases(res.purchases);
+      setPurchases(res?.purchases || []);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
@@ -43,6 +35,7 @@ export const PurchasesPage = () => {
             <th>Product ID</th>
             <th>Price</th>
             <th>Quantity</th>
+            <th>Sale Date</th>
             <th>Owner</th>
             <th></th>
           </tr>
@@ -65,24 +58,28 @@ export const PurchasesPage = () => {
               <td className="text-center">#{purchase.productID}</td>
               <td className="text-center">{purchase.price}$</td>
               <td className="text-center">{purchase.quantity}</td>
+              <td className="text-center">
+                {new Date(purchase.saleDate).toLocaleDateString()}
+              </td>
               <td className="text-center">{purchase.ownerName}</td>
               <td>
-                <div ref={ref} className="flex items-center justify-center">
+                <div className="flex items-center justify-center">
                   <button
-                    onClick={() => {
-                      setOpenModal(true);
-                    }}
+                    disabled={openModalP !== null}
+                    onClick={() => setOpenModalP(purchase)}
                     className={`bg-[#71B5DC] text-lg px-4 text-white py-1 `}
                   >
                     Verify
                   </button>
-                  {openModal && <VerifyModal {...purchase} />}
                 </div>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      {openModalP && (
+        <VerifyModal purchase={openModalP} setOpenModalP={setOpenModalP} />
+      )}
     </div>
   );
 };
