@@ -53,6 +53,7 @@ export const VerifyModal = ({ purchase, setOpenModalP }: VerifyModalProps) => {
       !purchase.contractDetails?.init.isInitialized &&
       !purchase.contractDetails?.init.transactionHash
     ) {
+      console.log("init");
       setState("init");
       setButonDisabled(false);
     }
@@ -181,7 +182,7 @@ export const VerifyModal = ({ purchase, setOpenModalP }: VerifyModalProps) => {
     console.log("Transaction hash:", hash);
 
     console.log(
-      "tx in minascan" + `https://minascan.io/devnet/tx/${hash}?type=zk-tx`
+      "tx in minascan " + `https://minascan.io/devnet/tx/${hash}?type=zk-tx`
     );
 
     console.log("Transaction sent.");
@@ -199,14 +200,108 @@ export const VerifyModal = ({ purchase, setOpenModalP }: VerifyModalProps) => {
     });
   }
 
-  const sellHandler = () => {
-    //TODO
+  const sellHandler = async () => {
+    setContract({
+      isStarted: true,
+      contractPK58: purchase.contractDetails?.contractAddress,
+      contractTX: null,
+    });
+    console.log("Initializing worker client.");
+    const zkappWorkerClient = new ZkappWorkerClient();
+
+    await timeout(5); // wait for worker to load
+
+    await zkappWorkerClient.setActiveInstanceToDevnet();
+
+    // check if wallet is connected
+    const mina = window.mina;
+
+    if (mina == null) {
+      return;
+    }
+
+    const buyerPublicKeyBase58: string = purchase.ownerAddress;
+    const buyerPublicKey = PublicKey.fromBase58(buyerPublicKeyBase58);
+    console.log("Using public key:", buyerPublicKey);
+
+    // check if account exists
+    const resFetchAccount = await zkappWorkerClient.fetchAccount({
+      publicKey: buyerPublicKey!,
+    });
+    const accountExists = resFetchAccount.error == null;
+
+    console.log("Account exists:", accountExists);
+
+    console.log("Loading contract...");
+    await zkappWorkerClient.loadContract();
+
+    console.log("compiling contract...");
+    await zkappWorkerClient.compileContract();
+
+    console.log("zkApp compiled");
+
+    console.log("Initializing contract...");
+
+    const contractPK = PublicKey.fromBase58(
+      purchase.contractDetails.contractAddress!
+    );
+
+    await zkappWorkerClient!.createSellTransaction(
+      buyerPublicKey,
+      purchase,
+      contractPK
+    );
+
+    console.log("creating proof...");
+
+    await zkappWorkerClient.proveUpdateTransaction();
+
+    console.log("getting transaction JSON...");
+
+    const transactionJSON = await zkappWorkerClient!.getTransactionJSON();
+
+    console.log("checking AURO connection...");
+
+    const network = await window.mina.requestNetwork();
+
+    console.log(`Network: ${network}`);
+
+    console.log("sending transaction...");
+
+    const { hash } = await window.mina.sendTransaction({
+      transaction: transactionJSON,
+      feePayer: {
+        fee: TransactionFee,
+        memo: "",
+      },
+    });
+
+    console.log("Transaction hash:", hash);
+
+    console.log(
+      "tx in minascan " + `https://minascan.io/devnet/tx/${hash}?type=zk-tx`
+    );
+
+    console.log("Transaction sent.");
+
+    setContract({
+      contractPK58: purchase.contractDetails?.contractAddress,
+      contractTX: hash,
+      isStarted: false,
+    });
+
+    postData("/api/admin/sell", {
+      purchaseId: purchase.purchaseId,
+      tx: hash,
+    }).then(() => {
+      setButonDisabled(true);
+    });
   };
 
   const initHandler = async () => {
     setContract({
       isStarted: true,
-      contractPK58: purchase.contractDetails?.contractAddress,
+      contractPK58: null,
       contractTX: null,
     });
     console.log("Initializing worker client.");
@@ -245,7 +340,20 @@ export const VerifyModal = ({ purchase, setOpenModalP }: VerifyModalProps) => {
 
     console.log("Initializing contract...");
 
-    await zkappWorkerClient!.createInitTransaction(deployerPublicKey, purchase);
+    if (!purchase.contractDetails?.contractAddress) {
+      console.error("Contract address is not found.");
+      return;
+    }
+
+    const contractPK = PublicKey.fromBase58(
+      purchase.contractDetails.contractAddress!
+    );
+
+    await zkappWorkerClient!.createInitTransaction(
+      deployerPublicKey,
+      purchase,
+      contractPK
+    );
 
     console.log("creating proof...");
 
@@ -274,7 +382,7 @@ export const VerifyModal = ({ purchase, setOpenModalP }: VerifyModalProps) => {
     console.log("Transaction hash:", hash);
 
     console.log(
-      "tx in minascan" + `https://minascan.io/devnet/tx/${hash}?type=zk-tx`
+      "tx in minascan " + `https://minascan.io/devnet/tx/${hash}?type=zk-tx`
     );
 
     console.log("Transaction sent.");
@@ -283,6 +391,13 @@ export const VerifyModal = ({ purchase, setOpenModalP }: VerifyModalProps) => {
       contractPK58: purchase.contractDetails?.contractAddress,
       contractTX: hash,
       isStarted: false,
+    });
+
+    postData("/api/admin/init", {
+      purchaseId: purchase.purchaseId,
+      tx: hash,
+    }).then(() => {
+      setButonDisabled(true);
     });
   };
 
@@ -293,14 +408,8 @@ export const VerifyModal = ({ purchase, setOpenModalP }: VerifyModalProps) => {
         ref={ref}
         className="bg-[#D9D9D9] p-20 flex flex-col items-center gap-y-8 fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20"
       >
-        {purchase.purchaseId}
-        {state === "init" ? (
-          <InitModal {...purchase} />
-        ) : state === "sell" ? (
-          <SellModal />
-        ) : (
-          <DeployModal contract={contract} />
-        )}
+        {state === "init" && <InitModal {...purchase} />}
+        <DeployModal contract={contract} state={state} />
         <div className="flex items-center gap-x-[180px]">
           <div className="flex flex-col items-center">
             <button
@@ -353,6 +462,7 @@ export const VerifyModal = ({ purchase, setOpenModalP }: VerifyModalProps) => {
             : state === "init"
             ? "Initialize"
             : "Sell"}
+          {contract.isStarted && "ing..."}
         </button>
       </div>
     </>
@@ -374,9 +484,9 @@ const InitModal = (purchase: GetPurchaseResponse) => {
         <p className="font-semibold">Owner Name</p>
         <p>{purchase.ownerName}</p>
       </div>
-      <div className="flex items-center justify-between">
-        <p className="font-semibold">Owner Address</p>
-        <p>{purchase.ownerAddress}</p>
+      <div className="flex flex-col gap-y-2">
+        <p className="font-semibold whitespace-nowrap">Owner Address</p>
+        <p className="truncate">{purchase.ownerAddress}</p>
       </div>
       <div className="flex items-center justify-between">
         <p className="font-semibold">Price</p>
@@ -414,18 +524,16 @@ const InitModal = (purchase: GetPurchaseResponse) => {
   );
 };
 
-const SellModal = () => {
-  return <div>SellModal</div>;
-};
-
 const DeployModal = ({
   contract,
+  state,
 }: {
   contract: {
     contractPK58: string | null;
     contractTX: string | null;
     isStarted: boolean;
   };
+  state: "start" | "deploy" | "init" | "sell";
 }) => {
   if (
     (!contract?.contractPK58 || !contract?.contractTX) &&
@@ -435,12 +543,23 @@ const DeployModal = ({
   }
 
   if (contract.isStarted) {
-    return <div>Deploying contract...</div>;
+    return (
+      <div>
+        {state === "deploy"
+          ? "Deploying contract..."
+          : state === "init"
+          ? "Initializing contract..."
+          : "Selling contract..."}
+      </div>
+    );
   }
   return (
     <div>
-      3 dakika içinde contract deploy edilecek. Lütfen bekleyin. Deploy işlemi
-      tamamlandığında buraya gelerek initialize işlemine geçebilirsiniz.
+      {state === "deploy"
+        ? "3 dakika içinde contract deploy edilecek. Lütfen bekleyin. Deploy işlemi tamamlandığında buraya gelerek initialize işlemine geçebilirsiniz."
+        : state === "init"
+        ? "3 dakika içinde contract initialize edilecek. Lütfen bekleyin. Initialize işlemi tamamlandığında buraya gelerek sell işlemine geçebilirsiniz."
+        : "3 dakika içinde sell işlemi bitecek. Lütfen bekleyin."}
     </div>
   );
 };

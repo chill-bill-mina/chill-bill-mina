@@ -1,7 +1,8 @@
 export interface GetPurchaseResponse {
   purchaseId: string;
   productID: string;
-  saleDate: number;
+  saleDate: string;
+  saleDateNum: number;
   ownerName: string;
   ownerAddress: string;
   price: number;
@@ -11,7 +12,7 @@ export interface GetPurchaseResponse {
   vatAmount: number;
   discountAmount: number;
   quantity: number;
-  invoiceNumber: string;
+  invoiceNumber: number;
   imageUrl: string;
   productName: string;
   contractDetails: ContractDetailType;

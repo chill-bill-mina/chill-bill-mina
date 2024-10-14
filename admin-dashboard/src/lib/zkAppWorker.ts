@@ -81,13 +81,15 @@ const functions = {
   createInitTransaction: async (args: {
     deployerAccountBase58: string;
     productInfo: GetPurchaseResponse;
+    contractPKBase58: string;
   }) => {
+    const contractPK: PublicKey = PublicKey.fromBase58(args.contractPKBase58);
     const deployerAccount: PublicKey = PublicKey.fromBase58(
       args.deployerAccountBase58
     );
     const productData = {
-      productID: Field(args.productInfo.productID),
-      saleDate: Field(args.productInfo.saleDate),
+      productID: convertStringToField(args.productInfo.productID),
+      saleDate: Field(args.productInfo.saleDateNum),
       ownerName: convertStringToField(args.productInfo.ownerName),
       ownerAddress: convertStringToField(args.productInfo.ownerAddress),
       price: Field(args.productInfo.price),
@@ -117,21 +119,26 @@ const functions = {
 
     // Get the root of the Merkle tree
     const productInfoRoot = productInfoTree.getRoot();
-    const transaction = await Mina.transaction(async () => {
-      state.zkapp!.initialize(deployerAccount, productInfoRoot);
+    const zkapp = new state.ProductContract!(contractPK);
+    const transaction = await Mina.transaction(deployerAccount, async () => {
+      AccountUpdate.fundNewAccount(deployerAccount);
+      zkapp!.initialize(deployerAccount, productInfoRoot);
     });
     state.transaction = transaction;
+    state.zkapp = zkapp;
   },
   createSellTransaction: async (args: {
     buyerAccountBase58: string;
     productInfo: GetPurchaseResponse;
+    contractPKBase58: string;
   }) => {
+    const contractPK: PublicKey = PublicKey.fromBase58(args.contractPKBase58);
     const buyerAccount: PublicKey = PublicKey.fromBase58(
       args.buyerAccountBase58
     );
     const productData = {
-      productID: Field(args.productInfo.productID),
-      saleDate: Field(args.productInfo.saleDate),
+      productID: convertStringToField(args.productInfo.productID),
+      saleDate: Field(args.productInfo.saleDateNum),
       ownerName: convertStringToField(args.productInfo.ownerName),
       ownerAddress: convertStringToField(args.productInfo.ownerAddress),
       price: Field(args.productInfo.price),
@@ -161,7 +168,12 @@ const functions = {
 
     // Get the root of the Merkle tree
     const productInfoRoot = productInfoTree.getRoot();
-    //TODO:
+    const zkapp = new state.ProductContract!(contractPK);
+    const transaction = await Mina.transaction(async () => {
+      zkapp!.sell(buyerAccount, productInfoRoot);
+    });
+    state.transaction = transaction;
+    state.zkapp = zkapp;
   },
   proveUpdateTransaction: async () => {
     await state.transaction!.prove();

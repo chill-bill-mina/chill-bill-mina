@@ -25,11 +25,25 @@ export default class ZkappWorkerClient {
 
   createInitTransaction(
     deployerAccount: PublicKey,
-    productInfo: GetPurchaseResponse
+    productInfo: GetPurchaseResponse,
+    contract: PublicKey
   ) {
     return this._call("createInitTransaction", {
       deployerAccountBase58: deployerAccount.toBase58(),
       productInfo,
+      contractPKBase58: contract.toBase58(),
+    });
+  }
+
+  createSellTransaction(
+    buyerAccount: PublicKey,
+    productInfo: GetPurchaseResponse,
+    contract: PublicKey
+  ) {
+    return this._call("createSellTransaction", {
+      buyerAccountBase58: buyerAccount.toBase58(),
+      productInfo,
+      contractPKBase58: contract.toBase58(),
     });
   }
 
