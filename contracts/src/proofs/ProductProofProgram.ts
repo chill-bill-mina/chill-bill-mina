@@ -3,12 +3,15 @@ import {
     Poseidon,
     Struct,
     ZkProgram,
-    MerkleTree,
     PublicKey,
+    MerkleWitness as BaseMerkleWitness,
 } from 'o1js';
 
 import { ProductContract } from '../ProductContract';
+await ProductContract.compile();
 
+const MERKLE_TREE_HEIGHT = 5; // Adjust based on your needs
+class MerkleWitness extends BaseMerkleWitness(MERKLE_TREE_HEIGHT) { }
 
 export class ProductProofPublicInput extends Struct({
     productID: Field,
@@ -20,19 +23,12 @@ export class ProductProofPublicOutput extends Struct({
     productInfoRoot: Field,
     owner: PublicKey,
     dealer: PublicKey,
+    productID: Field,
+    saleDate: Field,
 }) { }
 
 export class ProductProofPrivateInput extends Struct({
-    ownerName: Field,
-    ownerAddress: Field,
-    price: Field,
-    email: Field,
-    phoneNumber: Field,
-    productDescription: Field,
-    vatAmount: Field,
-    discountAmount: Field,
-    quantity: Field,
-    invoiceNumber: Field,
+    merkleWitness: MerkleWitness,
 }) { }
 
 export const ProductProofProgram = ZkProgram({
@@ -47,33 +43,9 @@ export const ProductProofProgram = ZkProgram({
                 publicInput: ProductProofPublicInput,
                 privateInput: ProductProofPrivateInput,
             ): Promise<ProductProofPublicOutput> {
-                const productData = [
-                    publicInput.productID,
-                    publicInput.saleDate,
-                    privateInput.ownerName,
-                    privateInput.ownerAddress,
-                    privateInput.price,
-                    privateInput.email,
-                    privateInput.phoneNumber,
-                    privateInput.productDescription,
-                    privateInput.vatAmount,
-                    privateInput.discountAmount,
-                    privateInput.quantity,
-                    privateInput.invoiceNumber,
-                ]
-                // Hash each field individually and add the hashes to an array
-                const fieldValues = Object.values(productData);
-                const fieldHashes = fieldValues.map((value) => Poseidon.hash([value]));
 
-                // Create Merkle tree
-                const productInfoTree = new MerkleTree(5);
+                const calculatedProductInfoRoot = privateInput.merkleWitness.calculateRoot(Poseidon.hash([publicInput.productID, publicInput.saleDate]));
 
-                for (let i = 0; i < fieldHashes.length; i++) {
-                    productInfoTree.setLeaf(BigInt(i), fieldHashes[i]);
-                }
-                productInfoTree.setLeaf(BigInt(fieldHashes.length), Poseidon.hash([publicInput.productID, publicInput.saleDate]));
-
-                const calculatedProductInfoRoot = productInfoTree.getRoot();
                 const zkAppInstance = new ProductContract(publicInput.zkAppAddress);
 
                 //Fetch the productInfoRoot and currentOwner from the zkAppInstance
@@ -83,7 +55,7 @@ export const ProductProofProgram = ZkProgram({
 
                 onChainProductInfoRoot.assertEquals(calculatedProductInfoRoot);
 
-                return new ProductProofPublicOutput({ productInfoRoot: onChainProductInfoRoot, owner: owner, dealer: dealer });
+                return new ProductProofPublicOutput({ productInfoRoot: onChainProductInfoRoot, owner: owner, dealer: dealer, productID: publicInput.productID, saleDate: publicInput.saleDate });
 
             },
         },

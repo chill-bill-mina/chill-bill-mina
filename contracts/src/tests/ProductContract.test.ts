@@ -6,19 +6,21 @@ import {
     MerkleTree,
     Poseidon,
     PublicKey,
+    MerkleWitness as BaseMerkleWitness
 
 } from 'o1js';
 import { verify } from 'o1js';
 import {
     ProductContract,
-} from './ProductContract.js';
+} from '../ProductContract.js';
 import {
     ProductProofProgram,
     ProductProofPublicInput,
     ProductProofPrivateInput,
-} from './proofs/ProductProofProgram.js';
-import { ProductData } from './structs/ProductData.js';
+} from '../proofs/ProductProofProgram.js';
+import { ProductData } from '../structs/ProductData.js';
 
+class MerkleWitness extends BaseMerkleWitness(5) { }
 let proofsEnabled = true;
 
 const convertStringToField = (str: string) => {
@@ -33,6 +35,20 @@ const convertFieldToString = (field: Field) => {
     let hexString = BigInt(field.toString()).toString(16);
 
     return Buffer.from(hexString, 'hex').toString('utf-8');
+}
+
+const generateMerkleTree = (productData: ProductData) => {
+    const fieldValues = Object.values(productData);
+    const fieldHashes = fieldValues.map((value) => Poseidon.hash([value]));
+
+    const productInfoTree = new MerkleTree(5);
+
+    for (let i = 0; i < fieldHashes.length; i++) {
+        productInfoTree.setLeaf(BigInt(i), fieldHashes[i]);
+    }
+    productInfoTree.setLeaf(BigInt(fieldHashes.length), Poseidon.hash([productData.productID, productData.saleDate]));
+
+    return productInfoTree;
 }
 
 describe('ProductContract', () => {
@@ -101,17 +117,8 @@ describe('ProductContract', () => {
             quantity: Field(1),
             invoiceNumber: Field(56789),
         };
-        // Hash each field individually and add the hashes to an array
-        const fieldValues = Object.values(productData);
-        const fieldHashes = fieldValues.map((value) => Poseidon.hash([value]));
 
-        // Create Merkle tree
-        productInfoTree = new MerkleTree(5);
-
-        for (let i = 0; i < fieldHashes.length; i++) {
-            productInfoTree.setLeaf(BigInt(i), fieldHashes[i]);
-        }
-        productInfoTree.setLeaf(BigInt(fieldHashes.length), Poseidon.hash([productData.productID, productData.saleDate]));
+        productInfoTree = generateMerkleTree(productData);
 
         // Get the root of the Merkle tree
         productInfoRoot = productInfoTree.getRoot();
@@ -158,15 +165,7 @@ describe('ProductContract', () => {
             invoiceNumber: Field(56789),
         };
 
-        const fieldValues = Object.values(productData);
-        const fieldHashes = fieldValues.map((value) => Poseidon.hash([value]));
-
-        productInfoTree = new MerkleTree(5);
-
-        for (let i = 0; i < fieldHashes.length; i++) {
-            productInfoTree.setLeaf(BigInt(i), fieldHashes[i]);
-        }
-        productInfoTree.setLeaf(BigInt(fieldHashes.length), Poseidon.hash([productData.productID, productData.saleDate]));
+        productInfoTree = generateMerkleTree(productData);
 
         productInfoRoot = productInfoTree.getRoot();
 
@@ -213,6 +212,7 @@ describe('ProductContract', () => {
             quantity: Field(1),
             invoiceNumber: Field(56789),
         };
+        const witness = new MerkleWitness(productInfoTree.getWitness(BigInt(Object.keys(productData).length)));
 
         const publicInput = new ProductProofPublicInput({
             productID: productData.productID,
@@ -220,16 +220,7 @@ describe('ProductContract', () => {
             zkAppAddress: zkAppAddress,
         });
         const privateInput = new ProductProofPrivateInput({
-            ownerName: productData.ownerName,
-            ownerAddress: productData.ownerAddress,
-            price: productData.price,
-            email: productData.email,
-            phoneNumber: productData.phoneNumber,
-            productDescription: productData.productDescription,
-            vatAmount: productData.vatAmount,
-            discountAmount: productData.discountAmount,
-            quantity: productData.quantity,
-            invoiceNumber: productData.invoiceNumber,
+            merkleWitness: witness,
         })
 
         // Create proof

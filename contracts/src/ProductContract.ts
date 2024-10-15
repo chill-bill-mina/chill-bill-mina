@@ -5,7 +5,14 @@ import {
   method,
   PublicKey,
   Field,
+  // ZkProgram
 } from 'o1js';
+
+// import { ProductProofProgram } from './proofs/ProductProofProgram';
+
+// await ProductProofProgram.compile();
+
+// export class ProductProofProgramProof extends ZkProgram.Proof(ProductProofProgram) { }
 
 export class ProductContract extends SmartContract {
   // state definitions
@@ -50,7 +57,8 @@ export class ProductContract extends SmartContract {
   // Sell method (change the product ownership)
   @method async sell(
     newOwner: PublicKey,
-    productInfoRoot: Field
+    productInfoRoot: Field,
+    // proof: ProductProofProgramProof
 
   ): Promise<void> {
     // check that the contract has been initialized
@@ -64,6 +72,8 @@ export class ProductContract extends SmartContract {
     // Verify that the person performing the transaction is the current owner
     storedCurrentOwner.assertEquals(senderPublicKey);
 
+    // proof.verify();
+
     // Update ownership
     this.currentOwner.set(newOwner);
 
@@ -71,5 +81,9 @@ export class ProductContract extends SmartContract {
     this.productInfoRoot.set(productInfoRoot);
 
   }
+
+  // @method async verifyProductInfo(proof: ProductProofProgramProof): Promise<void> {
+  //   proof.verify();
+  // }
 
 }
