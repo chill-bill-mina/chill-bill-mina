@@ -43,7 +43,7 @@ export const VerifyModal = ({ purchase, setOpenModalP }: VerifyModalProps) => {
     if (
       !purchase.contractDetails?.deploy.isDeployed &&
       purchase.contractDetails?.deploy.transactionHash &&
-      !purchase.contractDetails?.contractAddress
+      purchase.contractDetails?.contractAddress
     ) {
       setState("deploy");
       setButonDisabled(true);
@@ -53,7 +53,6 @@ export const VerifyModal = ({ purchase, setOpenModalP }: VerifyModalProps) => {
       !purchase.contractDetails?.init.isInitialized &&
       !purchase.contractDetails?.init.transactionHash
     ) {
-      console.log("init");
       setState("init");
       setButonDisabled(false);
     }
@@ -320,7 +319,7 @@ export const VerifyModal = ({ purchase, setOpenModalP }: VerifyModalProps) => {
 
     const deployerPublicKeyBase58: string = (await mina.requestAccounts())[0];
     const deployerPublicKey = PublicKey.fromBase58(deployerPublicKeyBase58);
-    console.log("Using public key:", deployerPublicKey);
+    console.log("Using public key:", deployerPublicKeyBase58);
 
     // check if account exists
     const resFetchAccount = await zkappWorkerClient.fetchAccount({
@@ -348,6 +347,11 @@ export const VerifyModal = ({ purchase, setOpenModalP }: VerifyModalProps) => {
     const contractPK = PublicKey.fromBase58(
       purchase.contractDetails.contractAddress!
     );
+
+    await zkappWorkerClient.fetchAccount({
+      publicKey: contractPK!,
+    });
+    console.log("contractPK", contractPK.toBase58());
 
     await zkappWorkerClient!.createInitTransaction(
       deployerPublicKey,

@@ -121,7 +121,6 @@ const functions = {
     const productInfoRoot = productInfoTree.getRoot();
     const zkapp = new state.ProductContract!(contractPK);
     const transaction = await Mina.transaction(deployerAccount, async () => {
-      AccountUpdate.fundNewAccount(deployerAccount);
       zkapp!.initialize(deployerAccount, productInfoRoot);
     });
     state.transaction = transaction;
