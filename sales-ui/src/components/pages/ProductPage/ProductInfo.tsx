@@ -1,5 +1,5 @@
 import { useOutsideClick } from "@/hooks/useOutsideClick";
-import { ProductInfoType } from "@/types/product";
+import { GetPurchaseType, ProductInfoType } from "@/types/product";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -8,15 +8,11 @@ import { Modal } from "./Modal";
 export const ProductInfo = ({
   product_info,
   setState,
-  saleDate,
-  zkAppAddress,
-  status,
+  purchase,
 }: {
   product_info: ProductInfoType;
   setState: React.Dispatch<React.SetStateAction<"step1" | "step2">>;
-  saleDate?: string;
-  zkAppAddress?: string;
-  status?: string;
+  purchase: GetPurchaseType | null;
 }) => {
   const pathname = usePathname();
 
@@ -101,9 +97,7 @@ export const ProductInfo = ({
               ? "Pending..."
               : "Get Documents"}
           </button>
-          {modalOpen && (
-            <Modal saleDate={saleDate} zkAppAddress={zkAppAddress} />
-          )}
+          {modalOpen && <Modal purchase={purchase} />}
         </div>
       </div>
     </div>

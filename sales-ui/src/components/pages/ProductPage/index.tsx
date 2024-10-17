@@ -74,9 +74,7 @@ const ProductPage = ({ product_id }: { product_id: string }) => {
     return (
       <div className="m-[50px]">
         <ProductInfo
-          saleDate={purchasedData?.saleDate}
-          zkAppAddress={purchasedData?.zkAppAddress}
-          status={purchasedData?.status}
+          purchase={purchasedData}
           product_info={infoData as ProductInfoType}
           setState={setState}
         />
