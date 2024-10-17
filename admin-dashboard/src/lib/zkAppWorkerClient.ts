@@ -38,12 +38,14 @@ export default class ZkappWorkerClient {
   createSellTransaction(
     buyerAccount: PublicKey,
     productInfo: GetPurchaseResponse,
-    contract: PublicKey
+    contract: PublicKey,
+    deployerPublicKey: PublicKey
   ) {
     return this._call("createSellTransaction", {
       buyerAccountBase58: buyerAccount.toBase58(),
       productInfo,
       contractPKBase58: contract.toBase58(),
+      deployerPublicKey58: deployerPublicKey.toBase58(),
     });
   }
 

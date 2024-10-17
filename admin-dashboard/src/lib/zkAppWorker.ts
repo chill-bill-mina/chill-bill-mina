@@ -130,7 +130,11 @@ const functions = {
     buyerAccountBase58: string;
     productInfo: GetPurchaseResponse;
     contractPKBase58: string;
+    deployerPublicKey58: string;
   }) => {
+    const deployerPublicKey: PublicKey = PublicKey.fromBase58(
+      args.deployerPublicKey58
+    );
     const contractPK: PublicKey = PublicKey.fromBase58(args.contractPKBase58);
     const buyerAccount: PublicKey = PublicKey.fromBase58(
       args.buyerAccountBase58
@@ -168,7 +172,7 @@ const functions = {
     // Get the root of the Merkle tree
     const productInfoRoot = productInfoTree.getRoot();
     const zkapp = new state.ProductContract!(contractPK);
-    const transaction = await Mina.transaction(async () => {
+    const transaction = await Mina.transaction(deployerPublicKey, async () => {
       zkapp!.sell(buyerAccount, productInfoRoot);
     });
     state.transaction = transaction;

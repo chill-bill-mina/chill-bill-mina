@@ -229,6 +229,14 @@ export const VerifyModal = ({ purchase, setOpenModalP }: VerifyModalProps) => {
     });
     const accountExists = resFetchAccount.error == null;
 
+    const deployerPublicKeyBase58: string = (await mina.requestAccounts())[0];
+    const deployerPublicKey = PublicKey.fromBase58(deployerPublicKeyBase58);
+    console.log("Using public key:", deployerPublicKey);
+
+    await zkappWorkerClient.fetchAccount({
+      publicKey: deployerPublicKey!,
+    });
+
     console.log("Account exists:", accountExists);
 
     console.log("Loading contract...");
@@ -248,7 +256,8 @@ export const VerifyModal = ({ purchase, setOpenModalP }: VerifyModalProps) => {
     await zkappWorkerClient!.createSellTransaction(
       buyerPublicKey,
       purchase,
-      contractPK
+      contractPK,
+      deployerPublicKey
     );
 
     console.log("creating proof...");
