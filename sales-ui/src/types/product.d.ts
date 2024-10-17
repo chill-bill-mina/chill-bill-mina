@@ -33,7 +33,15 @@ export interface ProductInfoType {
   name: string;
 }
 
+export interface GetPurchaseType {
+  product: GetProductType;
+  saleDate: string;
+  zkAppAddress?: string;
+  status: string;
+}
+
 export interface GetMyProductType {
+  purchaseId: string;
   product: {
     _id: string;
     imageUrl: string;
@@ -43,4 +51,5 @@ export interface GetMyProductType {
   };
   status: string;
   quantity: number;
+  contractAddress?: string;
 }

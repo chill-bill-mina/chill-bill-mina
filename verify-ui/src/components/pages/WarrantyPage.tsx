@@ -4,7 +4,7 @@ export const WarrantyPage = () => {
   return (
     <div className="flex-1 flex relative max-h-full">
       <div className="w-2/3 h-full flex flex-col items-center">
-        <div className="w-full p-10">
+        <div className="w-full pb-6 px-6">
           <p className="text-[48px] font-bold">
             Upload the file containing the ZK proof.
           </p>

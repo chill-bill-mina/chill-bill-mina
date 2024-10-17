@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const ProductOverview = ({ features }: { features: any }) => {
+  if (!features) return null;
   const numberOfElements = Object.keys(features).length;
   return (
     <div className="mt-[100px]">

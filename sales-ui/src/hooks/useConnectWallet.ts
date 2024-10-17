@@ -60,7 +60,7 @@ export const useConnectWallet = () => {
         })
       );
 
-      router.push("/purchases");
+      router.push("/");
 
       getNonce(valuePublicKeyBase58);
     })();

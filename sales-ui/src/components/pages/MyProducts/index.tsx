@@ -11,28 +11,6 @@ const MyProducts = () => {
 
   const [products, setProducts] = useState<GetMyProductType[]>([]);
 
-  // useEffect(() => {
-  //   setProducts([
-  //     {
-  //       _id: "66fed751baecf9295468d736",
-  //       imageUrl:
-  //         "https://media3.bsh-group.com/Product_Shots/900x/MCSA03336080_WIW28501GB_def.webp",
-  //       name: "Product 1",
-  //       productId: "1",
-  //       price: 100,
-  //       contractAddress: "0x1234567890",
-  //     },
-  //     {
-  //       _id: "66fed751baecf9295468d736",
-  //       imageUrl:
-  //         "https://media3.bsh-group.com/Product_Shots/900x/23472058_SMD8YCX03G_STP_def.webp",
-  //       name: "Product 2",
-  //       productId: "2",
-  //       price: 200,
-  //     },
-  //   ]);
-  // }, []);
-
   const { token } = useAppSelector((state) => state.session);
 
   const router = useRouter();
@@ -60,7 +38,7 @@ const MyProducts = () => {
             <th>Product ID</th>
             <th>Price</th>
             <th>Quantity</th>
-            <th>Contract</th>
+            <th>Contract Address</th>
             <th></th>
           </tr>
         </thead>
@@ -81,13 +59,36 @@ const MyProducts = () => {
               <td className="text-center">{purchase.product.name}</td>
               <td className="text-center">#{purchase.product.productId}</td>
               <td className="text-center">{purchase.product.price}$</td>
-              <td className={`text-center`}>{purchase.status}</td>
               <td className={`text-center`}>{purchase.quantity}</td>
+              <td
+                className={`text-center ${
+                  purchase?.status === "pending" || !purchase?.contractAddress
+                    ? "text-orange-400"
+                    : ""
+                }`}
+              >
+                <button
+                  onClick={() => {
+                    if (purchase?.contractAddress)
+                      window.navigator.clipboard.writeText(
+                        purchase?.contractAddress
+                      );
+                  }}
+                >
+                  {purchase.status === "pending"
+                    ? "Pending"
+                    : !!purchase?.contractAddress
+                    ? purchase?.contractAddress.slice(0, 10) +
+                      "..." +
+                      purchase?.contractAddress.slice(-10)
+                    : "Pending..."}
+                </button>
+              </td>
               <td>
                 <div className="flex items-center justify-center">
                   <button
                     onClick={() =>
-                      router.push(`/product-detail/${purchase.product?._id}`)
+                      router.push(`/product-detail/${purchase.purchaseId}`)
                     }
                     className="bg-[#71B5DC] text-lg px-4 text-white py-1"
                   >

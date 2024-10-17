@@ -17,6 +17,15 @@
       "feepayerKeyPath": "/Users/kutaysari/.cache/zkapp-cli/keys/pair.json",
       "feepayerAlias": "pair",
       "fee": "0.1"
+    },
+    "chill-bill-dev2": {
+      "networkId": "testnet",
+      "url": "https://api.minascan.io/node/devnet/v1/graphql",
+      "keyPath": "keys/chill-bill-dev2.json",
+      "feepayerKeyPath": "/Users/kutaysari/.cache/zkapp-cli/keys/03-deploy.json",
+      "feepayerAlias": "03-deploy",
+      "fee": "0.1",
+      "smartContract": "ProductContract"
     }
   }
 }

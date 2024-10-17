@@ -8,9 +8,15 @@ import { Modal } from "./Modal";
 export const ProductInfo = ({
   product_info,
   setState,
+  saleDate,
+  zkAppAddress,
+  status,
 }: {
   product_info: ProductInfoType;
   setState: React.Dispatch<React.SetStateAction<"step1" | "step2">>;
+  saleDate?: string;
+  zkAppAddress?: string;
+  status?: string;
 }) => {
   const pathname = usePathname();
 
@@ -31,6 +37,8 @@ export const ProductInfo = ({
   };
 
   const ref = useOutsideClick(closeModal);
+
+  if (!product_info) return null;
 
   return (
     <div className="w-full flex items-start">
@@ -81,14 +89,21 @@ export const ProductInfo = ({
         )}
         <div ref={ref}>
           <button
+            disabled={pageType === "product-detail" && status === "pending"}
             onClick={productHandler}
             className={`w-full bg-[#027BC0] mt-8 h-[72px] rounded-lg bg-opacity-70 text-2xl text-white ${
               pageType === "product-detail" && "cursor-default"
             }`}
           >
-            {pageType === "buy-product" ? "Buy Now" : "Get Documents"}
+            {pageType === "buy-product"
+              ? "Buy Now"
+              : status === "pending"
+              ? "Pending..."
+              : "Get Documents"}
           </button>
-          {modalOpen && <Modal />}
+          {modalOpen && (
+            <Modal saleDate={saleDate} zkAppAddress={zkAppAddress} />
+          )}
         </div>
       </div>
     </div>

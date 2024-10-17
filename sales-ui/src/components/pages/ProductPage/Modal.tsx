@@ -1,4 +1,10 @@
-export const Modal = () => {
+export const Modal = ({
+  saleDate,
+  zkAppAddress,
+}: {
+  saleDate?: string;
+  zkAppAddress?: string;
+}) => {
   const generate = () => {
     //TODO
   };
